@@ -1,0 +1,22 @@
+# Core
+torch
+torchvision
+timm
+numpy
+Pillow
+opencv-python
+scikit-learn
+pyyaml
+
+# Detection / VLM models
+transformers
+supervision
+autodistill
+autodistill-grounding-dino
+
+# Experiment tracking
+mlflow
+
+# Dev / testing
+pytest
+pytest-cov

@@ -1,0 +1,16 @@
+# Config for Grounding DINO zero-shot auto-labeling / baseline evaluation
+model:
+  name: "grounding_dino"
+  checkpoint: "IDEA-Research/grounding-dino-tiny"
+
+prompts:
+  - "billboard"
+  - "advertising sign"
+  - "ooh ad"
+
+thresholds:
+  box_threshold: 0.35
+  text_threshold: 0.25
+
+output:
+  auto_labels_dir: "data/annotations/auto"

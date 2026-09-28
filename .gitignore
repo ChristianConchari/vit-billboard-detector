@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Data & model artifacts (tracked outside git, or via DVC/MLflow later)
+data/raw/*
+data/interim/*
+data/processed/*
+data/annotations/auto/*
+data/annotations/reviewed/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/annotations/auto/.gitkeep
+!data/annotations/reviewed/.gitkeep
+
+checkpoints/*
+!checkpoints/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+mlruns/
+mlartifacts/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

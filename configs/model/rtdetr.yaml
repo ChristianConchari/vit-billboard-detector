@@ -1,0 +1,32 @@
+# Base config for RT-DETR fine-tuning on the billboard dataset
+model:
+  name: "rtdetr_r50vd"
+  pretrained_checkpoint: "PekingU/rtdetr_r50vd"
+  num_labels: 1
+  label_names: ["billboard"]
+
+data:
+  train_annotations: "data/annotations/reviewed/train.json"
+  val_annotations: "data/annotations/reviewed/val.json"
+  test_annotations: "data/annotations/reviewed/test.json"
+  image_dir: "data/processed"
+
+training:
+  epochs: 50
+  batch_size: 8
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-4
+  freeze_backbone: true
+
+augmentation:
+  horizontal_flip: 0.5
+  random_crop: true
+  color_jitter: true
+  mosaic: true
+
+evaluation:
+  metrics: ["mAP", "AP50", "AP75", "AP_small", "AP_medium", "AP_large"]
+
+mlflow:
+  experiment_name: "vit-billboard-detector"
+  tracking_uri: "mlruns"

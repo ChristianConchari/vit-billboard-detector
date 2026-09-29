@@ -1,8 +1,38 @@
+from unittest.mock import patch
+
 from vit.labeling.label_studio_sync import (
     bbox_to_percent,
+    build_auth_header,
     build_prediction_payload,
+    is_jwt,
     match_task_by_filename,
 )
+
+FAKE_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCJ9.fake-signature"
+
+
+def test_is_jwt_detects_three_segment_token():
+    assert is_jwt(FAKE_JWT) is True
+    assert is_jwt("plain-legacy-token-123") is False
+
+
+@patch("vit.labeling.label_studio_sync.requests.post")
+def test_build_auth_header_exchanges_jwt_refresh_token(mock_post):
+    mock_post.return_value.json.return_value = {"access": "short-lived-access-token"}
+    mock_post.return_value.raise_for_status.return_value = None
+
+    header = build_auth_header("http://localhost:8080", FAKE_JWT)
+
+    mock_post.assert_called_once_with(
+        "http://localhost:8080/api/token/refresh/", json={"refresh": FAKE_JWT}
+    )
+    assert header == {"Authorization": "Bearer short-lived-access-token"}
+
+
+def test_build_auth_header_uses_legacy_token_directly():
+    header = build_auth_header("http://localhost:8080", "plain-legacy-token-123")
+
+    assert header == {"Authorization": "Token plain-legacy-token-123"}
 
 
 def test_bbox_to_percent_converts_pixel_bbox():

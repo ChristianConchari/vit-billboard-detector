@@ -13,6 +13,33 @@ from urllib.parse import unquote
 import requests
 
 
+def is_jwt(token: str) -> bool:
+    """True if `token` looks like a JWT (header.payload.signature)."""
+    return token.count(".") == 2
+
+
+def exchange_refresh_token(label_studio_url: str, refresh_token: str) -> str:
+    """Exchange a Label Studio JWT refresh token for a short-lived access token."""
+    response = requests.post(
+        f"{label_studio_url}/api/token/refresh/", json={"refresh": refresh_token}
+    )
+    response.raise_for_status()
+    return response.json()["access"]
+
+
+def build_auth_header(label_studio_url: str, api_key: str) -> dict[str, str]:
+    """Build the Authorization header for either a legacy token or a JWT refresh token.
+
+    Newer Label Studio instances only expose JWT (access/refresh) tokens, no
+    static legacy token. A refresh token can't authenticate API calls by
+    itself, so it's exchanged for an access token first.
+    """
+    if is_jwt(api_key):
+        access_token = exchange_refresh_token(label_studio_url, api_key)
+        return {"Authorization": f"Bearer {access_token}"}
+    return {"Authorization": f"Token {api_key}"}
+
+
 def bbox_to_percent(
     bbox_xywh: tuple[float, float, float, float], img_width: int, img_height: int
 ) -> dict[str, float]:
@@ -77,7 +104,7 @@ def push_predictions(
     Returns a summary dict: {"pushed": N, "unmatched": N, "total_images": N}.
     """
     session = requests.Session()
-    session.headers.update({"Authorization": f"Token {api_key}"})
+    session.headers.update(build_auth_header(label_studio_url, api_key))
 
     tasks_resp = session.get(
         f"{label_studio_url}/api/tasks",

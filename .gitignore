@@ -30,6 +30,10 @@ mlartifacts/
 # Notebooks checkpoints
 .ipynb_checkpoints/
 
+# Test artifacts
+.pytest_cache/
+*.egg-info/
+
 # OS / editor
 .DS_Store
 .idea/

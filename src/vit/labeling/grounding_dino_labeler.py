@@ -6,7 +6,9 @@ annotating from scratch.
 """
 from dataclasses import dataclass
 
+import torch
 from PIL import Image
+from torchvision.ops import nms
 from transformers import pipeline
 
 from vit.utils.logging import get_logger
@@ -21,6 +23,26 @@ class BoxProposal:
     box_xyxy: tuple[float, float, float, float]  # (x_min, y_min, x_max, y_max)
 
 
+def deduplicate_proposals(
+    proposals: list[BoxProposal], iou_threshold: float = 0.5
+) -> list[BoxProposal]:
+    """Class-agnostic NMS over proposals.
+
+    Querying multiple near-synonym prompts (e.g. "billboard", "advertising
+    sign") makes Grounding DINO return several near-identical boxes for the
+    same physical object. This collapses them to the highest-scoring box per
+    overlapping cluster so manual review doesn't have to deal with
+    duplicates.
+    """
+    if not proposals:
+        return proposals
+
+    boxes = torch.tensor([p.box_xyxy for p in proposals], dtype=torch.float32)
+    scores = torch.tensor([p.score for p in proposals], dtype=torch.float32)
+    keep_indices = nms(boxes, scores, iou_threshold).tolist()
+    return [proposals[i] for i in keep_indices]
+
+
 class GroundingDinoAutoLabeler:
     """Wraps a Hugging Face zero-shot-object-detection pipeline for Grounding DINO."""
 
@@ -30,11 +52,13 @@ class GroundingDinoAutoLabeler:
         prompts: list[str] | None = None,
         box_threshold: float = 0.35,
         text_threshold: float = 0.25,
+        nms_iou_threshold: float = 0.5,
         device: str | int | None = None,
     ):
         self.prompts = prompts or ["billboard"]
         self.box_threshold = box_threshold
         self.text_threshold = text_threshold
+        self.nms_iou_threshold = nms_iou_threshold
 
         logger.info("Loading Grounding DINO checkpoint: %s", checkpoint)
         self._pipe = pipeline(
@@ -62,4 +86,4 @@ class GroundingDinoAutoLabeler:
                     box_xyxy=(box["xmin"], box["ymin"], box["xmax"], box["ymax"]),
                 )
             )
-        return proposals
+        return deduplicate_proposals(proposals, self.nms_iou_threshold)

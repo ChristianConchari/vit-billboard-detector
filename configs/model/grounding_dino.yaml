@@ -11,6 +11,10 @@ prompts:
 thresholds:
   box_threshold: 0.35
   text_threshold: 0.25
+  # Boxes from different prompts that overlap above this IoU are collapsed
+  # to the highest-scoring one (multiple near-synonym prompts otherwise
+  # produce duplicate boxes for the same object).
+  nms_iou_threshold: 0.5
 
 output:
   auto_labels_dir: "data/annotations/auto"

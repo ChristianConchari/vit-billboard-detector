@@ -27,6 +27,9 @@ logs/*
 mlruns/
 mlartifacts/
 
+# Label Studio local state (annotation tool, not project code)
+.label-studio/
+
 # Notebooks checkpoints
 .ipynb_checkpoints/
 

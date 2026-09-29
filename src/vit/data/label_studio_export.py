@@ -1,0 +1,76 @@
+"""Import a Label Studio COCO export into the project's reviewed dataset."""
+import json
+import shutil
+import zipfile
+from pathlib import Path
+from typing import Any
+
+
+def extract_if_zip(export_path: Path, extract_dir: Path) -> Path:
+    """If export_path is a zip, extract it into extract_dir and return extract_dir.
+
+    Otherwise return export_path's parent directory unchanged.
+    """
+    if export_path.suffix.lower() == ".zip":
+        extract_dir.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(export_path) as zf:
+            zf.extractall(extract_dir)
+        return extract_dir
+    return export_path.parent
+
+
+def find_coco_json(directory: Path) -> Path:
+    """Find the COCO-format annotation file inside an extracted export dir."""
+    candidates = sorted(directory.rglob("*.json"))
+    if not candidates:
+        raise FileNotFoundError(f"No .json file found under {directory}")
+
+    for path in candidates:
+        data = json.loads(path.read_text())
+        if {"images", "annotations", "categories"} <= data.keys():
+            return path
+
+    raise FileNotFoundError(
+        f"No COCO-format json (with images/annotations/categories) found under {directory}"
+    )
+
+
+def normalize_file_names(coco: dict[str, Any]) -> dict[str, Any]:
+    """Rewrite each image's file_name to its basename.
+
+    Label Studio exports often prefix file_name with task id / hash
+    directories; downstream code expects a flat data/processed/ layout.
+    """
+    for image in coco["images"]:
+        image["file_name"] = Path(image["file_name"]).name
+    return coco
+
+
+def copy_referenced_images(
+    coco: dict[str, Any], search_dirs: list[Path], output_dir: Path
+) -> list[str]:
+    """Copy every image referenced in `coco` into output_dir (flat), matched by basename.
+
+    Searches search_dirs in order (first match wins). Returns the list of
+    file names that could not be found in any search dir.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    index: dict[str, Path] = {}
+    for directory in search_dirs:
+        if not directory.exists():
+            continue
+        for path in directory.rglob("*"):
+            if path.is_file():
+                index.setdefault(path.name, path)
+
+    missing = []
+    for image in coco["images"]:
+        file_name = image["file_name"]
+        source = index.get(file_name)
+        if source is None:
+            missing.append(file_name)
+            continue
+        shutil.copy2(source, output_dir / file_name)
+
+    return missing

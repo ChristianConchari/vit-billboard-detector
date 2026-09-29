@@ -97,9 +97,23 @@ Open **http://localhost:8080**, create a local account (first run only), then:
 
 1. **Create project** → name it (e.g. `billboard-detection`).
 2. **Settings → Labeling Interface** → start from the *Object Detection with Bounding Boxes* template. Set the single label to `billboard`.
-3. **Settings → Cloud Storage → Add Source Storage** → type *Local files*, absolute path `/label-studio/files/data/raw`, enable *Treat every bucket object as a source file* → **Sync Storage**. This pulls in the raw images without copying them.
-4. **Import** → upload `data/annotations/auto/auto_labels.json` (COCO format). Label Studio matches it to the synced images and pre-fills the bounding boxes, so you only correct/add/remove instead of annotating from scratch.
-5. Review each task, fix boxes as needed, mark as done.
-6. **Export** → format *COCO* → save into `data/annotations/reviewed/` (split into `train.json` / `val.json` / `test.json` once you have enough reviewed images — see `configs/model/rtdetr.yaml`).
+3. **Settings → Cloud Storage → Add Source Storage** → type *Local files*, path `/label-studio/files/data/raw`. In Import Settings, set **Import Method** to treat every file as a source file (not "Tasks/JSON") and filter to image extensions, e.g. `.*\.(jpg|jpeg|png)$` → **Sync Storage**. This pulls in the raw images without copying them.
+4. Push the auto-labels as **predictions** onto the synced tasks (don't use Label Studio's built-in COCO import — it creates duplicate tasks instead of attaching boxes to the ones Local Storage already created):
+   ```bash
+   export LABEL_STUDIO_API_KEY=<your access/refresh token, from Account & Settings>
+   python scripts/push_predictions_to_label_studio.py --project-id <id>
+   ```
+   Opening a task now shows the Grounding DINO boxes pre-drawn.
+5. Review each task: correct/add/remove boxes, submit.
+6. **Data Manager → Export** → format *COCO* → download the zip.
+7. Import the export into the project (normalizes file names, copies images into `data/processed/`):
+   ```bash
+   python scripts/import_label_studio_export.py --export-path ~/Downloads/<export>.zip
+   ```
+8. Split into train/val/test (writes `data/annotations/reviewed/{train,val,test}.json`, matching `configs/model/rtdetr.yaml`):
+   ```bash
+   python scripts/split_reviewed_dataset.py
+   ```
+   Note: with a very small reviewed set, a fixed split isn't statistically meaningful — the script warns and still runs so the pipeline can be exercised end-to-end; re-run once you have more reviewed images, or switch to k-fold cross-validation.
 
 Stop the container with `docker stop vit-billboard-label-studio` (state persists in `.label-studio/data`, ignored by git); remove it with `docker rm vit-billboard-label-studio`.

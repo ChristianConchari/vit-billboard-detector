@@ -70,6 +70,10 @@ source .venv/bin/activate
 pip install -e . -r requirements.txt
 ```
 
+## Design decisions
+
+Architecture decision records live in [`docs/decisions/`](docs/decisions/).
+
 ## Labeling workflow
 
 1. Drop unlabeled images into `data/raw/`.
@@ -112,10 +116,10 @@ Open **http://localhost:8080**, create a local account (first run only), then:
    ```bash
    python scripts/import_label_studio_export.py --export-path ~/Downloads/<export>.zip
    ```
-8. Split into train/val/test (writes `data/annotations/reviewed/{train,val,test}.json`, matching `configs/model/rtdetr.yaml`):
+8. Split into train/val/test by video (writes `data/annotations/reviewed/{train,val,test}.json`, matching `configs/model/rtdetr.yaml`):
    ```bash
    python scripts/split_reviewed_dataset.py
    ```
-   Note: with a very small reviewed set, a fixed split isn't statistically meaningful — the script warns and still runs so the pipeline can be exercised end-to-end; re-run once you have more reviewed images, or switch to k-fold cross-validation.
+   Whole videos are assigned to one split ([ADR 0002](docs/decisions/0002-split-by-video.md)). The first run builds the assignment from the full image pool in `data/raw/` (≈70/15/15 by image count) and saves it to `data/annotations/reviewed/split_assignment.json`. Later runs reuse it, so you can review incrementally: export again, re-run steps 7–8, and every video stays in its split. Pass `--rebuild-assignment` only when new videos are added to the pool. A split with no reviewed images yet is written empty and logged as a warning.
 
 Stop the container with `docker stop vit-billboard-label-studio` (state persists in `.label-studio/data`, ignored by git); remove it with `docker rm vit-billboard-label-studio`.

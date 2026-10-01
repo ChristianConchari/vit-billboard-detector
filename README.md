@@ -145,3 +145,8 @@ Stop the container with `docker stop vit-billboard-label-studio` (state persists
    python scripts/visualize_attention.py --checkpoint checkpoints/rtdetr/<run>/best
    ```
    The attention figures show, for each RT-DETR detection, the encoder self-attention from the token under the box center and the decoder's deformable sampling points, sized by weight. Frames are cropped at the bottom to remove the camera's timestamp/GPS overlay (`--overlay-fraction`). Figures are written to `reports/figures/` and are not tracked by git.
+4. Benchmark end-to-end inference latency (batch size 1, preprocessing included):
+   ```bash
+   python scripts/benchmark_latency.py --checkpoint checkpoints/rtdetr/<run>/best
+   ```
+   Results go to `reports/metrics/latency_<split>.json`. The Grounding DINO pipeline runs one forward pass per text prompt, so its latency grows with the number of prompts.

@@ -93,17 +93,19 @@ docker run -d \
   heartexlabs/label-studio:latest
 ```
 
+If the container already exists (e.g. after a reboot), restart it with `docker start vit-billboard-label-studio` instead.
+
 Open **http://localhost:8080**, create a local account (first run only), then:
 
 1. **Create project** → name it (e.g. `billboard-detection`).
-2. **Settings → Labeling Interface** → start from the *Object Detection with Bounding Boxes* template. Set the single label to `billboard`.
-3. **Settings → Cloud Storage → Add Source Storage** → type *Local files*, path `/label-studio/files/data/raw`. In Import Settings, set **Import Method** to treat every file as a source file (not "Tasks/JSON") and filter to image extensions, e.g. `.*\.(jpg|jpeg|png)$` → **Sync Storage**. This pulls in the raw images without copying them.
+2. **Settings → Labeling Interface** → start from the *Object Detection with Bounding Boxes* template. Set the single label to `billboard`. Keep the template's tag names (`<Image name="image">`, `<RectangleLabels name="label">`): the push script targets them.
+3. **Settings → Cloud Storage → Add Source Storage** → type *Local files*, path `/label-studio/files/data/raw`. In Import Settings, set **Import Method** to treat every file as a source file (not "Tasks/JSON") and filter to image extensions, e.g. `.*\.(jpg|jpeg|png)$`, and leave **Recursive scan** off so only top-level files in `data/raw/` are imported → **Sync Storage**. This pulls in the raw images without copying them. Syncing only adds tasks: if files were moved or deleted from `data/raw/`, delete their stale tasks in the Data Manager.
 4. Push the auto-labels as **predictions** onto the synced tasks (don't use Label Studio's built-in COCO import — it creates duplicate tasks instead of attaching boxes to the ones Local Storage already created):
    ```bash
    export LABEL_STUDIO_API_KEY=<your access/refresh token, from Account & Settings>
    python scripts/push_predictions_to_label_studio.py --project-id <id>
    ```
-   Opening a task now shows the Grounding DINO boxes pre-drawn.
+   Opening a task now shows the Grounding DINO boxes pre-drawn. The script isn't idempotent: running it again adds a second set of predictions, so delete the existing ones first (Data Manager → select tasks → *Delete Predictions*).
 5. Review each task: correct/add/remove boxes, submit.
 6. **Data Manager → Export** → format *COCO* → download the zip.
 7. Import the export into the project (normalizes file names, copies images into `data/processed/`):

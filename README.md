@@ -68,7 +68,10 @@ Evaluation compares **Grounding DINO zero-shot** vs. **RT-DETR fine-tuned** on t
 python -m venv .venv
 source .venv/bin/activate
 pip install -e . -r requirements.txt
+pytest -q   # unit tests, no model downloads or GPU needed
 ```
+
+Run every command from the repository root: config and data paths are relative to it.
 
 ## Design decisions
 
@@ -150,3 +153,58 @@ Stop the container with `docker stop vit-billboard-label-studio` (state persists
    python scripts/benchmark_latency.py --checkpoint checkpoints/rtdetr/<run>/best
    ```
    Results go to `reports/metrics/latency_<split>.json`. The Grounding DINO pipeline runs one forward pass per text prompt, so its latency grows with the number of prompts.
+
+## Demo: detect billboards in images or video
+
+`billboard-detect` (installed by `pip install -e .`) runs a fine-tuned RT-DETR on an image, a folder of images or a video. It needs a checkpoint from [Training and evaluation](#training-and-evaluation); checkpoints are not tracked by git.
+
+```bash
+billboard-detect path/to/drive.mp4 --checkpoint checkpoints/rtdetr/<run>/best
+billboard-detect path/to/images/ --checkpoint checkpoints/rtdetr/<run>/best --score-threshold 0.3
+billboard-detect --help
+```
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--score-threshold` | `inference.score_threshold` in `configs/model/rtdetr.yaml` | Minimum score to keep a box |
+| `--overlay-fraction` | `0.08` | Bottom fraction of each frame cropped *before* detection, to drop the camera's timestamp/GPS overlay; use `0` for footage without it |
+| `--output-dir` | `outputs/detections` | Where results are written (not tracked by git) |
+
+Output:
+- annotated copies of the images, or `<name>_detections.mp4` for a video;
+- `detections.json`, with one record per image or frame:
+  ```json
+  {"source": "drive.mp4", "frame": 12, "detections": [{"box_xyxy": [609.7, 367.7, 918.6, 735.3], "score": 0.27}]}
+  ```
+  `frame` is `null` for images. Boxes are in pixels of the cropped frame.
+
+### Trying it out
+
+1. Unit tests for the demo (image folders, a synthetic video, an unreadable file):
+   ```bash
+   pytest -q tests/unit/test_media.py
+   ```
+2. A single image, then open the annotated copy:
+   ```bash
+   billboard-detect data/processed/<image>.jpg --checkpoint checkpoints/rtdetr/<run>/best
+   xdg-open outputs/detections/<image>.jpg
+   ```
+3. A video. Any dashcam or phone clip recorded from a car works; add `--overlay-fraction 0` if it has no timestamp/GPS band:
+   ```bash
+   billboard-detect path/to/drive.mp4 --checkpoint checkpoints/rtdetr/<run>/best --output-dir outputs/demo_video
+   xdg-open outputs/demo_video/drive_detections.mp4
+   ```
+4. Threshold trade-off: a higher threshold gives fewer false positives but misses more billboards:
+   ```bash
+   billboard-detect data/processed --checkpoint checkpoints/rtdetr/<run>/best --score-threshold 0.25 --output-dir outputs/th025
+   ```
+5. Error handling: these should exit with a clear message, without a traceback:
+   ```bash
+   billboard-detect missing.jpg --checkpoint checkpoints/rtdetr/<run>/best
+   billboard-detect docs/ --checkpoint checkpoints/rtdetr/<run>/best
+   billboard-detect README.md --checkpoint checkpoints/rtdetr/<run>/best
+   ```
+
+What to check: boxes sit on billboards, no timestamp/GPS overlay is left in the outputs, and `detections.json` has one record per image or frame.
+
+To judge real quality, use images from the test split (`data/annotations/reviewed/test.json`) or new footage. `data/processed/` also contains training images, where the model looks better than it is.

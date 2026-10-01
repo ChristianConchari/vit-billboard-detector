@@ -19,13 +19,20 @@ def draw_detections(
     title: str,
 ) -> Image.Image:
     """Return a copy of `image` with ground truth (green), predictions (red) and a title bar."""
-    canvas = image.copy()
+    canvas = draw_predictions(image, proposals)
     draw = ImageDraw.Draw(canvas)
     for x, y, w, h in ground_truth_xywh:
         draw.rectangle([x, y, x + w, y + h], outline=GROUND_TRUTH_COLOR, width=_line_width(image))
+    return _with_title(canvas, title)
+
+
+def draw_predictions(image: Image.Image, proposals: list[BoxProposal]) -> Image.Image:
+    """Return a copy of `image` with each predicted box and its score."""
+    canvas = image.copy()
+    draw = ImageDraw.Draw(canvas)
     for proposal in proposals:
         _draw_box(draw, image, proposal.box_xyxy, f"{proposal.score:.2f}")
-    return _with_title(canvas, title)
+    return canvas
 
 
 def draw_encoder_attention(image: Image.Image, detection: DetectionAttention, title: str) -> Image.Image:

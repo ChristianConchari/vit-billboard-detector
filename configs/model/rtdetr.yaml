@@ -30,6 +30,10 @@ evaluation:
   # Low on purpose: mAP integrates over the whole precision-recall curve.
   score_threshold: 0.01
 
+inference:
+  # The current model is under-confident (max test score ~0.3); recalibrate after retraining.
+  score_threshold: 0.15
+
 mlflow:
   experiment_name: "vit-billboard-detector"
   tracking_uri: "sqlite:///mlflow.db"

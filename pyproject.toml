@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "ViT-based OOH billboard detection (Computer Vision II final project)"
 requires-python = ">=3.10"
 
+[project.scripts]
+billboard-detect = "interfaces.cli.detect:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

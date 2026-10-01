@@ -1,4 +1,5 @@
-from vit.labeling.grounding_dino_labeler import BoxProposal, deduplicate_proposals
+from vit.inference.detection import BoxProposal
+from vit.labeling.grounding_dino_labeler import deduplicate_proposals
 
 
 def test_deduplicate_keeps_highest_score_among_overlapping_boxes():

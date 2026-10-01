@@ -4,23 +4,15 @@ Used as the first stage of the labeling pipeline: generates candidate boxes
 via text prompts so a human only has to review/correct them instead of
 annotating from scratch.
 """
-from dataclasses import dataclass
-
 import torch
 from PIL import Image
 from torchvision.ops import nms
 from transformers import pipeline
 
+from vit.inference.detection import BoxProposal
 from vit.utils.logging import get_logger
 
 logger = get_logger(__name__, log_file="labeling.log")
-
-
-@dataclass
-class BoxProposal:
-    label: str
-    score: float
-    box_xyxy: tuple[float, float, float, float]  # (x_min, y_min, x_max, y_max)
 
 
 def deduplicate_proposals(

@@ -123,3 +123,19 @@ Open **http://localhost:8080**, create a local account (first run only), then:
    Whole videos are assigned to one split ([ADR 0002](docs/decisions/0002-split-by-video.md)). The first run builds the assignment from the full image pool in `data/raw/` (≈70/15/15 by image count) and saves it to `data/annotations/reviewed/split_assignment.json`. Later runs reuse it, so you can review incrementally: export again, re-run steps 7–8, and every video stays in its split. Pass `--rebuild-assignment` only when new videos are added to the pool. A split with no reviewed images yet is written empty and logged as a warning.
 
 Stop the container with `docker stop vit-billboard-label-studio` (state persists in `.label-studio/data`, ignored by git); remove it with `docker rm vit-billboard-label-studio`.
+
+## Training and evaluation
+
+1. Fine-tune RT-DETR on `data/annotations/reviewed/train.json` (settings in `configs/model/rtdetr.yaml`):
+   ```bash
+   python scripts/train_rtdetr.py
+   ```
+   Each epoch is validated with COCO mAP on `val.json`. The best epoch is saved to `checkpoints/rtdetr/<run>/best`, and params and metrics go to MLflow (`mlflow ui --backend-store-uri sqlite:///mlflow.db`).
+2. Evaluate the fine-tuned model and the zero-shot baseline on the same split:
+   ```bash
+   python scripts/evaluate_detector.py --model rtdetr --checkpoint checkpoints/rtdetr/<run>/best --split test
+   python scripts/evaluate_detector.py --model grounding-dino --split test
+   ```
+   Metrics (mAP, AP50, AP75, AP by object size; `-1` means there are no ground-truth objects in that size range) are written to `reports/metrics/<model>_<split>.json` and logged to MLflow.
+
+   **Caveat:** the reviewed ground truth starts from Grounding DINO proposals, and boxes accepted unchanged match them exactly. This biases the comparison in favor of the zero-shot baseline, especially AP75.

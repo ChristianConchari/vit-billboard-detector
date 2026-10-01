@@ -1,8 +1,6 @@
-# Base config for RT-DETR fine-tuning on the billboard dataset
+# RT-DETR fine-tuning on the billboard dataset
 model:
-  name: "rtdetr_r50vd"
   pretrained_checkpoint: "PekingU/rtdetr_r50vd"
-  num_labels: 1
   label_names: ["billboard"]
 
 data:
@@ -16,17 +14,22 @@ training:
   batch_size: 8
   learning_rate: 1.0e-4
   weight_decay: 1.0e-4
+  max_grad_norm: 0.1
   freeze_backbone: true
+  num_workers: 4
+  seed: 42
+  checkpoint_dir: "checkpoints/rtdetr"
 
 augmentation:
   horizontal_flip: 0.5
-  random_crop: true
-  color_jitter: true
-  mosaic: true
+  scale_range: [0.75, 1.25]
+  translate: 0.1
+  color_jitter: 0.2
 
 evaluation:
-  metrics: ["mAP", "AP50", "AP75", "AP_small", "AP_medium", "AP_large"]
+  # Low on purpose: mAP integrates over the whole precision-recall curve.
+  score_threshold: 0.01
 
 mlflow:
   experiment_name: "vit-billboard-detector"
-  tracking_uri: "mlruns"
+  tracking_uri: "sqlite:///mlflow.db"

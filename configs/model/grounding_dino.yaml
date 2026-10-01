@@ -18,3 +18,7 @@ thresholds:
 
 output:
   auto_labels_dir: "data/annotations/auto"
+
+evaluation:
+  # Zero-shot baseline: low threshold so mAP sees the full precision-recall curve.
+  box_threshold: 0.05

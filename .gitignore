@@ -41,3 +41,8 @@ mlartifacts/
 .DS_Store
 .idea/
 .vscode/
+
+mlflow.db
+
+# Rendered dataset frames carry a timestamp/GPS overlay from the data provider
+reports/figures/predictions_*/

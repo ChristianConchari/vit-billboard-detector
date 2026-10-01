@@ -139,3 +139,9 @@ Stop the container with `docker stop vit-billboard-label-studio` (state persists
    Metrics (mAP, AP50, AP75, AP by object size; `-1` means there are no ground-truth objects in that size range) are written to `reports/metrics/<model>_<split>.json` and logged to MLflow.
 
    **Caveat:** the reviewed ground truth starts from Grounding DINO proposals, and boxes accepted unchanged match them exactly. This biases the comparison in favor of the zero-shot baseline, especially AP75.
+3. Inspect predictions qualitatively (green = ground truth, red = prediction):
+   ```bash
+   python scripts/visualize_predictions.py --checkpoint checkpoints/rtdetr/<run>/best --rtdetr-threshold 0.15
+   python scripts/visualize_attention.py --checkpoint checkpoints/rtdetr/<run>/best
+   ```
+   The attention figures show, for each RT-DETR detection, the encoder self-attention from the token under the box center and the decoder's deformable sampling points, sized by weight. Frames are cropped at the bottom to remove the camera's timestamp/GPS overlay (`--overlay-fraction`). Figures are written to `reports/figures/` and are not tracked by git.

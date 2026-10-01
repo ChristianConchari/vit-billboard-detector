@@ -46,3 +46,4 @@ mlflow.db
 
 # Rendered dataset frames carry a timestamp/GPS overlay from the data provider
 reports/figures/predictions_*/
+reports/figures/attention_*/

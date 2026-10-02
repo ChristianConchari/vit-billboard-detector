@@ -133,17 +133,37 @@ Stop the container with `docker stop vit-billboard-label-studio` (state persists
 
 ## Training and evaluation
 
+### One-command run
+
+Once the review in Label Studio is exported, one command rebuilds every result:
+
+```bash
+python scripts/run_pipeline.py --export-path ~/Downloads/<export>.zip
+```
+
+It imports the export, splits it by video, fine-tunes RT-DETR, calibrates its score threshold on val (best F1 at IoU 0.5, saved as `calibration.json` next to the checkpoint), evaluates RT-DETR and the Grounding DINO baseline on test, benchmarks latency, and renders figures. Everything lands in `reports/runs/<run>/`:
+
+- `results.md`: dataset, test metrics, calibrated threshold and latency tables, ready for the README and the report;
+- `summary.json`: the same numbers, machine-readable;
+- `figures/`: prediction comparisons and attention maps (not tracked by git; publish only a few hand-picked frames).
+
+Without `--export-path` it reuses the dataset already imported. `--checkpoint checkpoints/rtdetr/<run>/best` skips training and evaluates that model. `--skip-figures` saves a few minutes. Settings live in `configs/pipeline.yaml` and `configs/model/*.yaml`. The run stops early if a split has no reviewed images.
+
+### Step by step
+
+The same steps can be run one at a time:
+
 1. Fine-tune RT-DETR on `data/annotations/reviewed/train.json` (settings in `configs/model/rtdetr.yaml`):
    ```bash
    python scripts/train_rtdetr.py
    ```
-   Each epoch is validated with COCO mAP on `val.json`. The best epoch is saved to `checkpoints/rtdetr/<run>/best`, and params and metrics go to MLflow (`mlflow ui --backend-store-uri sqlite:///mlflow.db`).
+   Each epoch is validated with COCO mAP on `val.json`. The best epoch is saved to `checkpoints/rtdetr/<run>/best`, and the run is tracked in MLflow (see [Experiment tracking](#experiment-tracking)).
 2. Evaluate the fine-tuned model and the zero-shot baseline on the same split:
    ```bash
    python scripts/evaluate_detector.py --model rtdetr --checkpoint checkpoints/rtdetr/<run>/best --split test
    python scripts/evaluate_detector.py --model grounding-dino --split test
    ```
-   Metrics (mAP, AP50, AP75, AP by object size; `-1` means there are no ground-truth objects in that size range) are written to `reports/metrics/<model>_<split>.json` and logged to MLflow.
+   Metrics (mAP, AP50, AP75, AP by object size; `-1` means there are no ground-truth objects in that size range) are written to `reports/metrics/<model>_<split>.json`. These standalone evaluation, latency and figure scripts are for quick checks and don't create MLflow runs; tracked results come from the one-command run.
 
    **Caveat:** the reviewed ground truth starts from Grounding DINO proposals, and boxes accepted unchanged match them exactly. This biases the comparison in favor of the zero-shot baseline, especially AP75.
 3. Inspect predictions qualitatively (green = ground truth, red = prediction):
@@ -158,6 +178,22 @@ Stop the container with `docker stop vit-billboard-label-studio` (state persists
    ```
    Results go to `reports/metrics/latency_<split>.json`. The Grounding DINO pipeline runs one forward pass per text prompt, so its latency grows with the number of prompts.
 
+### Experiment tracking
+
+MLflow uses a local SQLite backend (`mlflow.db`, with artifacts under `mlruns/`; neither is tracked by git). Browse runs with:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+Each `run_pipeline.py` execution is **one MLflow run** with:
+- **tags** for reproducibility: `git.commit`, `git.dirty` (uncommitted changes when it ran), `stage`, and SHA-256 fingerprints of the reviewed annotations, the split assignment and the Label Studio export;
+- **params**: every setting of the three configs (`pipeline.*`, `rtdetr.*`, `grounding_dino.*`) and images/boxes per split (`data.<split>.*`);
+- **metrics**: `train/loss` and `val/*` per epoch, `val/best_mAP`, `calibration/*`, `test/<model>/*` and `latency/<model>/*`;
+- **artifacts**: the effective configs (`configs/`), `results.md`, `summary.json` and `calibration.json` (`reports/`). The checkpoint itself is logged only if `tracking.log_checkpoint` is enabled in `configs/pipeline.yaml`, because it weighs ~170 MB.
+
+`scripts/train_rtdetr.py` creates a training-only run with the same naming. A pipeline run with `--checkpoint` is named `<run>-evaluation`.
+
 ## Demo: detect billboards in images or video
 
 `billboard-detect` (installed by `pip install -e .`) runs a fine-tuned RT-DETR on an image, a folder of images or a video. It needs a checkpoint from [Training and evaluation](#training-and-evaluation); checkpoints are not tracked by git.
@@ -170,7 +206,7 @@ billboard-detect --help
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--score-threshold` | `inference.score_threshold` in `configs/model/rtdetr.yaml` | Minimum score to keep a box |
+| `--score-threshold` | the checkpoint's `calibration.json`, else `inference.score_threshold` in `configs/model/rtdetr.yaml` | Minimum score to keep a box |
 | `--overlay-fraction` | `0.08` | Bottom fraction of each frame cropped *before* detection, to drop the camera's timestamp/GPS overlay; use `0` for footage without it |
 | `--output-dir` | `outputs/detections` | Where results are written (not tracked by git) |
 

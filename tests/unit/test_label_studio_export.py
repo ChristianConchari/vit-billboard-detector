@@ -5,6 +5,7 @@ from vit.data.label_studio_export import (
     copy_referenced_images,
     extract_if_zip,
     find_coco_json,
+    import_label_studio_export,
     normalize_file_names,
 )
 
@@ -80,3 +81,27 @@ def test_copy_referenced_images_copies_matches_and_reports_missing(tmp_path):
 
     assert missing == ["missing.jpg"]
     assert (output_dir / "found.jpg").is_file()
+
+
+def test_import_label_studio_export_falls_back_to_raw_images(tmp_path):
+    zip_path = tmp_path / "export.zip"
+    exported = {**VALID_COCO, "images": [{**VALID_COCO["images"][0], "file_name": "../../raw/a.jpg"}]}
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.writestr("result.json", json.dumps(exported))
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    (raw_dir / "a.jpg").write_bytes(b"fake-bytes")
+
+    coco, missing = import_label_studio_export(
+        zip_path,
+        output_path=tmp_path / "reviewed" / "master.json",
+        images_out_dir=tmp_path / "processed",
+        extract_dir=tmp_path / "extracted",
+        fallback_image_dirs=[raw_dir],
+    )
+
+    assert missing == []
+    assert coco["images"][0]["file_name"] == "a.jpg"
+    assert (tmp_path / "processed" / "a.jpg").read_bytes() == b"fake-bytes"
+    assert json.loads((tmp_path / "reviewed" / "master.json").read_text()) == coco
+

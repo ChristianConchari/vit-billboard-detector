@@ -5,8 +5,11 @@ Usage:
 """
 import argparse
 
-from vit.train.trainer import train_rtdetr
+import mlflow
+
+from vit.train.trainer import new_run_name, train_rtdetr
 from vit.utils.config import load_config
+from vit.utils.tracking import flatten, git_tags, start_run
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,7 +24,12 @@ def main() -> None:
     config = load_config(args.config)
     if args.epochs is not None:
         config["training"]["epochs"] = args.epochs
-    train_rtdetr(config)
+    run_name = new_run_name()
+    with start_run(config["mlflow"], run_name):
+        mlflow.set_tags({**git_tags(), "stage": "train"})
+        mlflow.log_params(flatten(config, prefix="rtdetr."))
+        mlflow.log_dict(config, "configs/rtdetr.yaml")
+        train_rtdetr(config, run_name=run_name)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,26 @@
+# End-to-end run: Label Studio export -> split -> train -> calibrate -> evaluate -> report
+data:
+  label_studio_extract_dir: "data/interim/label_studio_export"
+  reviewed_annotations: "data/annotations/reviewed/reviewed_master.json"
+  raw_image_dir: "data/raw"
+  split_assignment: "data/annotations/reviewed/split_assignment.json"
+  split_ratios: { train: 0.7, val: 0.15, test: 0.15 }
+  split_seed: 42
+
+calibration:
+  iou_threshold: 0.5
+
+latency:
+  warmup: 5
+  repeats: 3
+
+figures:
+  # Bottom fraction of each frame holding the camera's timestamp/GPS overlay.
+  overlay_fraction: 0.08
+  max_attention_detections: 3
+
+tracking:
+  # The fine-tuned checkpoint is ~170 MB; enable to make MLflow self-contained.
+  log_checkpoint: false
+
+output_dir: "reports/runs"

@@ -74,3 +74,30 @@ def copy_referenced_images(
         shutil.copy2(source, output_dir / file_name)
 
     return missing
+
+
+def import_label_studio_export(
+    export_path: Path,
+    output_path: Path,
+    images_out_dir: Path,
+    extract_dir: Path,
+    fallback_image_dirs: list[Path],
+) -> tuple[dict[str, Any], list[str]]:
+    """Import a Label Studio COCO export (.zip or .json) into the reviewed dataset.
+
+    Images are looked up in the export first, then in `fallback_image_dirs`:
+    Local Storage-backed projects export annotations without image bytes.
+    Returns the normalized COCO dict and the file names that weren't found.
+    """
+    if export_path.suffix.lower() == ".zip":
+        search_root = extract_if_zip(export_path, extract_dir)
+        coco_json_path = find_coco_json(search_root)
+    else:
+        coco_json_path, search_root = export_path, export_path.parent
+
+    coco = normalize_file_names(json.loads(coco_json_path.read_text()))
+    missing = copy_referenced_images(coco, [search_root, *fallback_image_dirs], images_out_dir)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(coco, indent=2))
+    return coco, missing

@@ -1,7 +1,8 @@
 """CLI: evaluate a detector on a reviewed split with COCO metrics.
 
 Compares the fine-tuned RT-DETR against the Grounding DINO zero-shot baseline
-on the same ground truth. Metrics are written to reports/metrics/ and MLflow.
+on the same ground truth. Metrics are written to reports/metrics/ (quick checks;
+tracked results come from scripts/run_pipeline.py).
 
 Usage:
     python scripts/evaluate_detector.py --model rtdetr --checkpoint checkpoints/rtdetr/<run>/best
@@ -10,8 +11,6 @@ Usage:
 import argparse
 import json
 from pathlib import Path
-
-import mlflow
 
 from vit.eval.coco_evaluation import evaluate_detector
 from vit.inference.detection import Detector
@@ -60,14 +59,6 @@ def main() -> None:
     output_path = Path(args.output_dir) / f"{args.model}_{args.split}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(metrics, indent=2))
-
-    mlflow.set_tracking_uri(rtdetr_config["mlflow"]["tracking_uri"])
-    mlflow.set_experiment(rtdetr_config["mlflow"]["experiment_name"])
-    with mlflow.start_run(run_name=f"eval-{args.model}-{args.split}"):
-        mlflow.log_params(
-            {"model": args.model, "split": args.split, "checkpoint": args.checkpoint or "zero-shot"}
-        )
-        mlflow.log_metrics({f"{args.split}_{k}": v for k, v in metrics.items()})
 
     logger.info(
         "%s on %s (%d images): %s -> %s",

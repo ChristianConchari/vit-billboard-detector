@@ -1,7 +1,8 @@
 """CLI: compare end-to-end inference latency of RT-DETR and Grounding DINO.
 
 Batch size 1 on the images of a reviewed split. Results are written to
-reports/metrics/latency_<split>.json and MLflow.
+reports/metrics/latency_<split>.json (quick checks; tracked results come from
+scripts/run_pipeline.py).
 
 Usage:
     python scripts/benchmark_latency.py --checkpoint checkpoints/rtdetr/<run>/best
@@ -10,7 +11,6 @@ import argparse
 import json
 from pathlib import Path
 
-import mlflow
 import torch
 from PIL import Image
 
@@ -75,13 +75,6 @@ def main() -> None:
     output_path = Path(args.output_dir) / f"latency_{args.split}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(results, indent=2))
-
-    mlflow.set_tracking_uri(rtdetr_config["mlflow"]["tracking_uri"])
-    mlflow.set_experiment(rtdetr_config["mlflow"]["experiment_name"])
-    with mlflow.start_run(run_name=f"latency-{args.split}"):
-        mlflow.log_params({"device": device, "checkpoint": args.checkpoint, "split": args.split})
-        for name in detectors:
-            mlflow.log_metrics({f"{name}_{k}": v for k, v in results[name].items()})
 
     logger.info("Latency results -> %s", output_path)
 

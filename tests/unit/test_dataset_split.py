@@ -2,8 +2,10 @@ import pytest
 
 from vit.data.dataset_split import (
     assign_videos_to_splits,
+    load_or_build_assignment,
     split_coco_by_video,
     video_id_from_file_name,
+    write_splits,
 )
 
 
@@ -90,3 +92,34 @@ def test_split_keeps_only_matching_annotations_and_categories_per_subset():
         image_ids = {img["id"] for img in subset["images"]}
         assert {a["image_id"] for a in subset["annotations"]} == image_ids
         assert subset["categories"] == [{"id": 1, "name": "billboard"}]
+
+
+def test_assignment_is_built_once_and_then_reused(tmp_path):
+    pool_dir = tmp_path / "raw"
+    pool_dir.mkdir()
+    for name in _file_names({"a": 3, "b": 1}):
+        (pool_dir / name).touch()
+    assignment_path = tmp_path / "assignment.json"
+
+    built = load_or_build_assignment(assignment_path, pool_dir)
+    (pool_dir / "c_0.jpg").touch()
+    reused = load_or_build_assignment(assignment_path, pool_dir)
+    rebuilt = load_or_build_assignment(assignment_path, pool_dir, rebuild=True)
+
+    assert set(built) == set(reused) == {"a", "b"}
+    assert set(rebuilt) == {"a", "b", "c"}
+
+
+def test_assignment_needs_pool_images(tmp_path):
+    with pytest.raises(ValueError):
+        load_or_build_assignment(tmp_path / "assignment.json", tmp_path)
+
+
+def test_write_splits_writes_each_split_to_its_path(tmp_path):
+    splits = split_coco_by_video(_make_coco(["a_1.jpg"]), {"a": "train"})
+    paths = {name: tmp_path / "out" / f"{name}.json" for name in splits}
+
+    write_splits(splits, paths)
+
+    assert all(path.is_file() for path in paths.values())
+

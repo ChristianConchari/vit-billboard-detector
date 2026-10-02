@@ -11,6 +11,7 @@ import json
 import time
 from pathlib import Path
 
+from vit.eval.threshold import load_calibrated_threshold
 from vit.inference.factory import build_rtdetr_detector
 from vit.inference.media import detect_in_images, detect_in_video, is_video, list_images
 from vit.utils.config import load_config
@@ -24,7 +25,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("source", type=Path, help="Image file, folder of images, or video file")
     parser.add_argument("--checkpoint", required=True, help="Fine-tuned RT-DETR checkpoint dir")
     parser.add_argument("--config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--score-threshold", type=float, help="Overrides inference.score_threshold")
+    parser.add_argument(
+        "--score-threshold",
+        type=float,
+        help="Defaults to the checkpoint's calibrated threshold, else inference.score_threshold",
+    )
     parser.add_argument(
         "--overlay-fraction",
         type=float,
@@ -35,17 +40,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_score_threshold(
+    requested: float | None, checkpoint_dir: Path, config: dict
+) -> float:
+    if requested is not None:
+        return requested
+    calibrated = load_calibrated_threshold(checkpoint_dir)
+    if calibrated is not None:
+        return calibrated
+    return config["inference"]["score_threshold"]
+
+
 def main() -> None:
     args = parse_args()
     if not args.source.exists():
         raise SystemExit(f"Source not found: {args.source}")
 
     config = load_config(args.config)
-    score_threshold = (
-        args.score_threshold
-        if args.score_threshold is not None
-        else config["inference"]["score_threshold"]
-    )
+    score_threshold = resolve_score_threshold(args.score_threshold, Path(args.checkpoint), config)
+    logger.info("Score threshold: %.3f", score_threshold)
     detector = build_rtdetr_detector(args.checkpoint, config["model"]["label_names"], score_threshold)
 
     start = time.perf_counter()

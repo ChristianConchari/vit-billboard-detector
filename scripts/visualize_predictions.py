@@ -10,12 +10,9 @@ Usage:
 """
 import argparse
 import json
-from collections import defaultdict
 from pathlib import Path
 
-from PIL import Image
-
-from vit.eval.visualization import crop_bottom, draw_detections, side_by_side
+from vit.eval.figures import render_detector_comparison
 from vit.inference.factory import build_grounding_dino_detector, build_rtdetr_detector
 from vit.utils.config import load_config
 from vit.utils.logging import get_logger
@@ -58,27 +55,11 @@ def main() -> None:
         ),
     }
 
-    boxes_by_image = defaultdict(list)
-    for annotation in ground_truth["annotations"]:
-        boxes_by_image[annotation["image_id"]].append(annotation["bbox"])
-
     output_dir = Path(args.output_dir) / f"predictions_{args.split}"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    for image_info in ground_truth["images"]:
-        image = Image.open(Path(data_config["image_dir"]) / image_info["file_name"]).convert("RGB")
-        overlay_height = round(image.height * args.overlay_fraction)
-        panels = [
-            crop_bottom(
-                draw_detections(
-                    image, boxes_by_image[image_info["id"]], detector.predict(image), title
-                ),
-                overlay_height,
-            )
-            for title, detector in detectors.items()
-        ]
-        side_by_side(panels).save(output_dir / image_info["file_name"], quality=90)
-
-    logger.info("Saved %d comparison image(s) to %s", len(ground_truth["images"]), output_dir)
+    rendered = render_detector_comparison(
+        detectors, ground_truth, Path(data_config["image_dir"]), output_dir, args.overlay_fraction
+    )
+    logger.info("Saved %d comparison image(s) to %s", rendered, output_dir)
 
 
 if __name__ == "__main__":

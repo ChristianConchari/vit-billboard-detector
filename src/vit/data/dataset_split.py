@@ -5,6 +5,7 @@ splits (see docs/decisions/0002-split-by-video.md). Whole videos are assigned
 to a split once, over the full image pool, and that assignment is reused for
 every (partial) reviewed export so splits stay stable while labeling grows.
 """
+import json
 import random
 from collections import Counter
 from collections.abc import Iterable
@@ -12,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 SPLIT_NAMES = ("train", "val", "test")
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
 
 def video_id_from_file_name(file_name: str) -> str:
@@ -59,6 +61,29 @@ def assign_videos_to_splits(
     return assignment
 
 
+def load_or_build_assignment(
+    assignment_path: Path,
+    pool_dir: Path,
+    train_ratio: float = 0.7,
+    val_ratio: float = 0.15,
+    test_ratio: float = 0.15,
+    seed: int = 42,
+    rebuild: bool = False,
+) -> dict[str, str]:
+    """Reuse the saved video assignment, or build it from the full image pool and save it."""
+    if assignment_path.exists() and not rebuild:
+        return json.loads(assignment_path.read_text())
+
+    pool = [p.name for p in pool_dir.iterdir() if p.suffix.lower() in IMAGE_EXTENSIONS]
+    if not pool:
+        raise ValueError(f"No images in {pool_dir} to build the split assignment from")
+
+    assignment = assign_videos_to_splits(pool, train_ratio, val_ratio, test_ratio, seed)
+    assignment_path.parent.mkdir(parents=True, exist_ok=True)
+    assignment_path.write_text(json.dumps(assignment, indent=2, sort_keys=True))
+    return assignment
+
+
 def split_coco_by_video(
     coco: dict[str, Any], assignment: dict[str, str]
 ) -> dict[str, dict[str, Any]]:
@@ -87,3 +112,9 @@ def _subset(coco: dict[str, Any], image_ids: set[int]) -> dict[str, Any]:
         "annotations": [a for a in coco["annotations"] if a["image_id"] in image_ids],
         "categories": coco["categories"],
     }
+
+
+def write_splits(splits: dict[str, dict[str, Any]], paths: dict[str, Path]) -> None:
+    for name, subset in splits.items():
+        paths[name].parent.mkdir(parents=True, exist_ok=True)
+        paths[name].write_text(json.dumps(subset, indent=2))

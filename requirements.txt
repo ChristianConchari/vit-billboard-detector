@@ -1,23 +1,26 @@
-# Core
-torch
-torchvision
-timm
-numpy
-Pillow
-opencv-python
-scikit-learn
-pyyaml
-requests
+# Pinned to the versions the pipeline was validated with (Python 3.12).
+# transformers 5.x and MLflow 3.x introduced breaking changes, so upgrade deliberately.
 
-# Detection / VLM models
-transformers
-supervision
-autodistill
-autodistill-grounding-dino
+# Core
+torch==2.14.0
+torchvision==0.29.0
+numpy==2.5.3
+pillow==12.3.0
+opencv-python==5.0.0.93
+pyyaml==6.0.3
+requests==2.34.2
+
+# Detection models
+transformers==5.17.0
+scipy==1.18.1  # RT-DETR loss (Hungarian matching)
+
+# Evaluation and visualization
+pycocotools==2.0.11
+matplotlib==3.11.2
 
 # Experiment tracking
-mlflow
+mlflow==3.16.1
 
 # Dev / testing
-pytest
-pytest-cov
+pytest==9.1.1
+pytest-cov==7.1.0

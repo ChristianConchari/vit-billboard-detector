@@ -50,10 +50,14 @@ Evaluation compares **Grounding DINO zero-shot** vs. **RT-DETR fine-tuned** on t
 
 ## Tooling
 
-- PyTorch / torchvision / timm
+- PyTorch / torchvision (training loop, box-aware augmentations)
 - Hugging Face `transformers` (RT-DETR, Grounding DINO)
-- MLflow for experiment tracking
+- pycocotools (COCO mAP), OpenCV (video I/O), matplotlib (attention colormaps)
+- MLflow for experiment tracking (SQLite backend, `mlflow.db`)
+- Label Studio for box review
 - pytest for testing
+
+Dependencies are pinned in `requirements.txt` to the versions the pipeline was validated with (Python 3.12).
 
 ## Deliverables (course requirements)
 

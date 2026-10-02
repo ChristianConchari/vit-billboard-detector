@@ -203,6 +203,17 @@ Each `run_pipeline.py` execution is **one MLflow run** with:
 
 `scripts/train_rtdetr.py` creates a training-only run with the same naming. A pipeline run with `--checkpoint` is named `<run>-evaluation`.
 
+### Learning curve
+
+To show how much labeling RT-DETR needs to match the zero-shot baseline, run the pipeline after each labeling batch with the same note, then plot:
+
+```bash
+python scripts/run_pipeline.py --export-path ~/Downloads/<export>.zip --note learning-curve
+python scripts/plot_learning_curve.py --note learning-curve
+```
+
+This writes `reports/figures/learning_curve.png` and the same points as `learning_curve.csv`: test mAP against the number of training images, with the Grounding DINO zero-shot mAP as a reference line. Runs repeated at one size (e.g. different seeds) are averaged, and their min–max range is drawn. The script refuses runs evaluated on different test splits. Commit before each run, so every point is tied to a clean `git.commit`.
+
 ## Demo: detect billboards in images or video
 
 `billboard-detect` (installed by `pip install -e .`) runs a fine-tuned RT-DETR on an image, a folder of images or a video. It needs a checkpoint from [Training and evaluation](#training-and-evaluation); checkpoints are not tracked by git.

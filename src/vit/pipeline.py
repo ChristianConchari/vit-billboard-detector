@@ -48,11 +48,13 @@ def run_pipeline(
     export_path: Path | None = None,
     checkpoint: Path | None = None,
     render_figures: bool = True,
+    note: str | None = None,
 ) -> Path:
     """Run every step and return the run directory holding summary.json and results.md.
 
     Without `export_path` the existing reviewed dataset is split again; with
-    `checkpoint` training is skipped and that model is evaluated instead.
+    `checkpoint` training is skipped and that model is evaluated instead. `note`
+    tags the MLflow run (e.g. "learning-curve") so related runs can be filtered.
     """
     image_dir = Path(configs.rtdetr["data"]["image_dir"])
     train = checkpoint is None
@@ -69,7 +71,9 @@ def run_pipeline(
 
     mlflow_run_name = run_name if train else f"{run_name}-evaluation"
     with start_run(configs.rtdetr["mlflow"], mlflow_run_name):
-        _log_run_context(configs, splits, export_path, stage="train+evaluate" if train else "evaluate")
+        _log_run_context(
+            configs, splits, export_path, stage="train+evaluate" if train else "evaluate", note=note
+        )
 
         if train:
             _step("Fine-tune RT-DETR")
@@ -177,6 +181,7 @@ def _log_run_context(
     splits: dict[str, dict[str, Any]],
     export_path: Path | None,
     stage: str,
+    note: str | None,
 ) -> None:
     """Record what is needed to reproduce the run: code, configs and dataset version."""
     data_cfg = configs.pipeline["data"]
@@ -185,9 +190,15 @@ def _log_run_context(
         "stage": stage,
         "data.reviewed_annotations_sha256": file_digest(Path(data_cfg["reviewed_annotations"])),
         "data.split_assignment_sha256": file_digest(Path(data_cfg["split_assignment"])),
+        **{
+            f"data.{split}_sha256": file_digest(Path(configs.rtdetr["data"][f"{split}_annotations"]))
+            for split in SPLIT_NAMES
+        },
     }
     if export_path is not None:
         tags["data.export_sha256"] = file_digest(export_path)
+    if note:
+        tags.update({"note": note, "mlflow.note.content": note})
     mlflow.set_tags(tags)
 
     for name, config in asdict(configs).items():

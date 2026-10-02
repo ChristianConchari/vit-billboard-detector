@@ -4,6 +4,7 @@ Usage:
     python scripts/run_pipeline.py --export-path ~/Downloads/project-1-at-....zip
     python scripts/run_pipeline.py                                    # reuse the imported dataset
     python scripts/run_pipeline.py --checkpoint checkpoints/rtdetr/<run>/best  # skip training
+    python scripts/run_pipeline.py --export-path <export>.zip --note learning-curve
 """
 import argparse
 from pathlib import Path
@@ -21,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
     parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
     parser.add_argument("--epochs", type=int, help="Overrides training.epochs from the RT-DETR config")
+    parser.add_argument("--note", help='MLflow tag to group related runs, e.g. "learning-curve"')
     return parser.parse_args()
 
 
@@ -39,6 +41,7 @@ def main() -> None:
         export_path=args.export_path.expanduser() if args.export_path else None,
         checkpoint=args.checkpoint,
         render_figures=not args.skip_figures,
+        note=args.note,
     )
 
 

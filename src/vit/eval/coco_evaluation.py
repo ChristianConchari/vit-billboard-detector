@@ -34,7 +34,8 @@ def coco_metrics(
         coco_eval.accumulate()
         coco_eval.summarize()
 
-    return {name: float(value) for name, value in zip(METRIC_NAMES, coco_eval.stats)}
+    summary_stats = coco_eval.stats[: len(METRIC_NAMES)]
+    return {name: float(value) for name, value in zip(METRIC_NAMES, summary_stats, strict=True)}
 
 
 def evaluate_detector(

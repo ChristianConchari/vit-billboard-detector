@@ -40,7 +40,8 @@ def results_markdown(summary: dict[str, Any]) -> str:
         "| Threshold | Precision | Recall | F1 | IoU |",
         "|--:|--:|--:|--:|--:|",
         f"| {calibration['score_threshold']:.3f} | {calibration['precision']:.3f} "
-        f"| {calibration['recall']:.3f} | {calibration['f1']:.3f} | {calibration['iou_threshold']} |",
+        f"| {calibration['recall']:.3f} | {calibration['f1']:.3f} "
+        f"| {calibration['iou_threshold']} |",
         "",
         f"## Inference latency ({latency['device']}, batch size 1, end to end)",
         "",

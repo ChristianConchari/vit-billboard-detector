@@ -101,7 +101,7 @@ def explain_detections(
     image_size = np.array([image.width, image.height])
 
     detections = []
-    for score, query in zip(top.values.tolist(), top.indices.tolist()):
+    for score, query in zip(top.values.tolist(), top.indices.tolist(), strict=True):
         if score < score_threshold:
             break
         cx, cy, w, h = outputs.pred_boxes[0, query].tolist()

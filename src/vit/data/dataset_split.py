@@ -39,7 +39,9 @@ def assign_videos_to_splits(
     each goes to the split furthest below its target image count. Returns
     {video_id: split_name}.
     """
-    ratios: dict[str, float] = dict(zip(SPLIT_NAMES, (train_ratio, val_ratio, test_ratio)))
+    ratios: dict[str, float] = dict(
+        zip(SPLIT_NAMES, (train_ratio, val_ratio, test_ratio), strict=True)
+    )
     if abs(sum(ratios.values()) - 1.0) > 1e-6:
         raise ValueError("train_ratio + val_ratio + test_ratio must sum to 1.0")
 

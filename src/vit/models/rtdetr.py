@@ -4,7 +4,6 @@ import math
 from pathlib import Path
 
 import torch
-
 from transformers import (
     AutoImageProcessor,
     AutoModelForObjectDetection,

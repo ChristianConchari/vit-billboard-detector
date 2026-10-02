@@ -57,7 +57,9 @@ def draw_sampling_points(
     weights = detection.sampling_weights / detection.sampling_weights.max()
     max_radius = image.width / 80
 
-    for (x, y), weight in sorted(zip(detection.sampling_points_xy, weights), key=lambda p: p[1]):
+    for (x, y), weight in sorted(
+        zip(detection.sampling_points_xy, weights, strict=True), key=lambda p: p[1]
+    ):
         if not (0 <= x < image.width and 0 <= y < image.height):
             continue
         radius = max(2.0, max_radius * float(np.sqrt(weight)))

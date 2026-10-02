@@ -63,7 +63,7 @@ class CocoDetectionDataset(Dataset):
             "image_id": image_info["id"],
             "annotations": [
                 {"bbox": box, "category_id": label, "area": box[2] * box[3], "iscrowd": 0}
-                for box, label in zip(boxes, labels)
+                for box, label in zip(boxes, labels, strict=True)
             ],
         }
         return image, target
@@ -76,7 +76,7 @@ class DetectionCollator:
         self.image_processor = image_processor
 
     def __call__(self, batch: list[tuple[Image.Image, dict[str, Any]]]) -> BatchFeature:
-        images, targets = zip(*batch)
+        images, targets = zip(*batch, strict=True)
         return self.image_processor(
             images=list(images), annotations=list(targets), return_tensors="pt"
         )

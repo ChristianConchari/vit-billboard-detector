@@ -61,7 +61,10 @@ def render_attention_maps(
     max_detections: int,
     overlay_fraction: float,
 ) -> int:
-    """Save detection / encoder attention / decoder sampling panels per detection; returns the count."""
+    """Save detection, encoder attention and decoder sampling panels per detection.
+
+    Returns the number of figures written.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AutoModelForObjectDetection.from_pretrained(checkpoint, attn_implementation="eager")
     model.to(device)

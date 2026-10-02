@@ -1,6 +1,8 @@
 import json
 import zipfile
 
+import pytest
+
 from vit.data.label_studio_export import (
     copy_referenced_images,
     extract_if_zip,
@@ -52,11 +54,8 @@ def test_find_coco_json_picks_the_coco_formatted_file(tmp_path):
 def test_find_coco_json_raises_when_none_found(tmp_path):
     (tmp_path / "not_coco.json").write_text(json.dumps({"foo": "bar"}))
 
-    try:
+    with pytest.raises(FileNotFoundError):
         find_coco_json(tmp_path)
-        assert False, "expected FileNotFoundError"
-    except FileNotFoundError:
-        pass
 
 
 def test_normalize_file_names_strips_directory_prefixes():

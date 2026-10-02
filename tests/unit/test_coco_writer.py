@@ -1,3 +1,5 @@
+import pytest
+
 from vit.labeling.coco_writer import CocoDatasetBuilder
 
 
@@ -34,15 +36,12 @@ def test_add_annotation_rejects_unknown_category():
     builder = CocoDatasetBuilder(category_names=["billboard"])
     image_id = builder.add_image("a.jpg", width=800, height=600)
 
-    try:
+    with pytest.raises(ValueError):
         builder.add_annotation(
             image_id=image_id,
             category_name="not-a-category",
             bbox_xywh=(0, 0, 1, 1),
         )
-        assert False, "expected ValueError"
-    except ValueError:
-        pass
 
 
 def test_save_writes_valid_coco_json(tmp_path):

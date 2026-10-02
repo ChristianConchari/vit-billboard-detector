@@ -39,6 +39,6 @@ class RtDetrDetector:
                 box_xyxy=tuple(box),
             )
             for box, score, label in zip(
-                boxes.tolist(), result["scores"].tolist(), result["labels"].tolist()
+                boxes.tolist(), result["scores"].tolist(), result["labels"].tolist(), strict=True
             )
         ]

@@ -77,6 +77,19 @@ pytest -q   # unit tests, no model downloads or GPU needed
 
 Run every command from the repository root: config and data paths are relative to it.
 
+### Code quality and CI
+
+[Ruff](https://docs.astral.sh/ruff/) formats and lints the code (settings in `pyproject.toml`: line length 100, pyflakes, pycodestyle, bugbear, import sorting, pyupgrade):
+
+```bash
+ruff format src scripts tests
+ruff check src scripts tests
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests, with two jobs:
+- **lint:** `ruff check` and `ruff format --check`;
+- **test:** installs the pinned dependencies (CPU-only PyTorch, no GPU needed) and runs `pytest`.
+
 ## Design decisions
 
 Architecture decision records live in [`docs/decisions/`](docs/decisions/).

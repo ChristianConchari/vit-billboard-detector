@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff (version pinned in requirements.txt)
+        run: pip install "$(grep '^ruff==' requirements.txt)"
+      - run: ruff check src scripts tests
+      - run: ruff format --check src scripts tests
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      # Unit tests don't need a GPU: CPU wheels avoid downloading the CUDA stack.
+      - name: Install CPU-only PyTorch (versions pinned in requirements.txt)
+        run: |
+          pip install $(grep -E '^(torch|torchvision)==' requirements.txt) \
+            --index-url https://download.pytorch.org/whl/cpu
+      - name: Install project and dependencies
+        run: pip install -e . -r requirements.txt
+      - run: pytest -q

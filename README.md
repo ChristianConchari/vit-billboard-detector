@@ -1,5 +1,7 @@
 # vit-billboard-detector
 
+[![CI](https://github.com/ChristianConchari/vit-billboard-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/ChristianConchari/vit-billboard-detector/actions/workflows/ci.yml)
+
 Vision Transformer-based object detection system for identifying **out-of-home (OOH) advertising billboards** in images. Final project for the **Computer Vision II** course at MIA-CEIA (FIUBA).
 
 ## Problem

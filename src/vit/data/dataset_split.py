@@ -118,3 +118,16 @@ def write_splits(splits: dict[str, dict[str, Any]], paths: dict[str, Path]) -> N
     for name, subset in splits.items():
         paths[name].parent.mkdir(parents=True, exist_ok=True)
         paths[name].write_text(json.dumps(subset, indent=2))
+
+
+def exclude_split(
+    coco: dict[str, Any], assignment: dict[str, str], split: str
+) -> dict[str, Any]:
+    """Drop the images (and their annotations) whose video is assigned to `split`."""
+    kept_ids = {
+        image["id"]
+        for image in coco["images"]
+        if assignment.get(video_id_from_file_name(image["file_name"])) != split
+    }
+    return _subset(coco, kept_ids)
+

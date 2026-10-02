@@ -2,6 +2,7 @@ import pytest
 
 from vit.data.dataset_split import (
     assign_videos_to_splits,
+    exclude_split,
     load_or_build_assignment,
     split_coco_by_video,
     video_id_from_file_name,
@@ -123,3 +124,12 @@ def test_write_splits_writes_each_split_to_its_path(tmp_path):
 
     assert all(path.is_file() for path in paths.values())
 
+
+
+def test_exclude_split_drops_images_and_boxes_of_that_split():
+    coco = _make_coco(["a_1.jpg", "b_1.jpg", "c_1.jpg"])
+
+    kept = exclude_split(coco, {"a": "train", "b": "test", "c": "val"}, "test")
+
+    assert [img["file_name"] for img in kept["images"]] == ["a_1.jpg", "c_1.jpg"]
+    assert {a["image_id"] for a in kept["annotations"]} == {1, 3}

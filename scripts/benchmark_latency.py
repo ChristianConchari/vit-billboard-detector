@@ -7,6 +7,7 @@ scripts/run_pipeline.py).
 Usage:
     python scripts/benchmark_latency.py --checkpoint checkpoints/rtdetr/<run>/best
 """
+
 import argparse
 import json
 from pathlib import Path

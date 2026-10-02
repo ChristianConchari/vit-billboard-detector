@@ -9,6 +9,7 @@ Two views per detection:
   gets. Sampling locations aren't part of the model output, so they are
   recomputed from the layer inputs with the layer's own projections.
 """
+
 from dataclasses import dataclass
 from typing import Any
 

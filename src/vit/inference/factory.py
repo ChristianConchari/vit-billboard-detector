@@ -1,4 +1,5 @@
 """Builders for the project's detectors from their configs."""
+
 from pathlib import Path
 from typing import Any
 

@@ -6,6 +6,7 @@ Usage:
     python scripts/run_pipeline.py --checkpoint checkpoints/rtdetr/<run>/best  # skip training
     python scripts/run_pipeline.py --export-path <export>.zip --note learning-curve
 """
+
 import argparse
 from pathlib import Path
 
@@ -16,12 +17,16 @@ from vit.utils.config import load_config
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the end-to-end billboard detection pipeline")
     parser.add_argument("--export-path", type=Path, help="Label Studio COCO export (.zip or .json)")
-    parser.add_argument("--checkpoint", type=Path, help="Evaluate this RT-DETR checkpoint instead of training")
+    parser.add_argument(
+        "--checkpoint", type=Path, help="Evaluate this RT-DETR checkpoint instead of training"
+    )
     parser.add_argument("--skip-figures", action="store_true")
     parser.add_argument("--pipeline-config", default="configs/pipeline.yaml")
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
     parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
-    parser.add_argument("--epochs", type=int, help="Overrides training.epochs from the RT-DETR config")
+    parser.add_argument(
+        "--epochs", type=int, help="Overrides training.epochs from the RT-DETR config"
+    )
     parser.add_argument("--note", help='MLflow tag to group related runs, e.g. "learning-curve"')
     return parser.parse_args()
 

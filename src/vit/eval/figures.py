@@ -3,6 +3,7 @@
 The bottom `overlay_fraction` of every frame is cropped because the source
 camera burns a timestamp/GPS overlay into it.
 """
+
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -40,7 +41,9 @@ def render_detector_comparison(
         overlay_height = round(image.height * overlay_fraction)
         panels = [
             crop_bottom(
-                draw_detections(image, boxes_by_image[image_info["id"]], detector.predict(image), title),
+                draw_detections(
+                    image, boxes_by_image[image_info["id"]], detector.predict(image), title
+                ),
                 overlay_height,
             )
             for title, detector in detectors.items()
@@ -76,12 +79,14 @@ def render_attention_maps(
             proposal = BoxProposal("billboard", detection.score, detection.box_xyxy)
             panels = [
                 draw_detections(image, [], [proposal], "Detection"),
-                draw_encoder_attention(image, detection, "Encoder self-attention (box center token)"),
+                draw_encoder_attention(
+                    image, detection, "Encoder self-attention (box center token)"
+                ),
                 draw_sampling_points(image, detection, "Decoder deformable sampling points"),
             ]
             stem = Path(image_info["file_name"]).stem
-            side_by_side([crop_bottom(p, overlay_height) for p in panels], max_panel_width=800).save(
-                output_dir / f"{stem}_det{rank}.jpg", quality=90
-            )
+            side_by_side(
+                [crop_bottom(p, overlay_height) for p in panels], max_panel_width=800
+            ).save(output_dir / f"{stem}_det{rank}.jpg", quality=90)
             rendered += 1
     return rendered

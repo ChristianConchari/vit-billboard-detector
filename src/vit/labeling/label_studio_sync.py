@@ -7,6 +7,7 @@ module instead matches auto-labels to already-synced tasks by file name and
 pushes the boxes as "predictions" via the API, so a human only has to
 review/correct them in the labeling UI.
 """
+
 from typing import Any
 from urllib.parse import unquote
 

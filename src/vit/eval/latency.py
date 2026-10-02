@@ -1,4 +1,5 @@
 """End-to-end inference latency (preprocessing + forward + postprocessing) of a Detector."""
+
 import statistics
 import time
 from dataclasses import asdict, dataclass

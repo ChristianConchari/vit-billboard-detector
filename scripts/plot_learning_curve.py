@@ -5,6 +5,7 @@ Writes the chart (PNG) and the same points as CSV. Runs must share one test spli
 Usage:
     python scripts/plot_learning_curve.py --note learning-curve
 """
+
 import argparse
 from pathlib import Path
 
@@ -35,9 +36,7 @@ def main() -> None:
 
     plot_learning_curve(points, zero_shot_map, args.output)
     write_curve_table(points, zero_shot_map, args.output.with_suffix(".csv"))
-    logger.info(
-        "%d run(s), %d training-set size(s) -> %s", len(results), len(points), args.output
-    )
+    logger.info("%d run(s), %d training-set size(s) -> %s", len(results), len(points), args.output)
 
 
 if __name__ == "__main__":

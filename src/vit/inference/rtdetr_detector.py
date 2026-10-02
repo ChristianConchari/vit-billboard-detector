@@ -1,4 +1,5 @@
 """Detector adapter around a (fine-tuned) RT-DETR model."""
+
 import torch
 from PIL import Image
 from transformers import BaseImageProcessor, PreTrainedModel

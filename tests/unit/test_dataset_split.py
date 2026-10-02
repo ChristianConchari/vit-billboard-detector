@@ -21,7 +21,14 @@ def _make_coco(file_names: list[str]) -> dict:
             for i, name in enumerate(file_names, start=1)
         ],
         "annotations": [
-            {"id": i, "image_id": i, "category_id": 1, "bbox": [0, 0, 10, 10], "area": 100, "iscrowd": 0}
+            {
+                "id": i,
+                "image_id": i,
+                "category_id": 1,
+                "bbox": [0, 0, 10, 10],
+                "area": 100,
+                "iscrowd": 0,
+            }
             for i in range(1, len(file_names) + 1)
         ],
         "categories": [{"id": 1, "name": "billboard"}],
@@ -47,14 +54,18 @@ def test_assignment_balances_image_counts_across_splits():
 
     assignment = assign_videos_to_splits(pool, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15)
 
-    images_per_split = {s: 10 * list(assignment.values()).count(s) for s in ("train", "val", "test")}
+    images_per_split = {
+        s: 10 * list(assignment.values()).count(s) for s in ("train", "val", "test")
+    }
     assert images_per_split == {"train": 140, "val": 30, "test": 30}
 
 
 def test_assignment_is_deterministic_given_same_seed():
     pool = _file_names({f"v{i}": i + 1 for i in range(10)})
 
-    assert assign_videos_to_splits(pool, seed=7) == assign_videos_to_splits(list(reversed(pool)), seed=7)
+    assert assign_videos_to_splits(pool, seed=7) == assign_videos_to_splits(
+        list(reversed(pool)), seed=7
+    )
 
 
 def test_split_never_puts_one_video_in_two_splits():
@@ -123,7 +134,6 @@ def test_write_splits_writes_each_split_to_its_path(tmp_path):
     write_splits(splits, paths)
 
     assert all(path.is_file() for path in paths.values())
-
 
 
 def test_exclude_split_drops_images_and_boxes_of_that_split():

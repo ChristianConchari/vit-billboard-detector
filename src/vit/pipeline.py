@@ -7,6 +7,7 @@ benchmark latency -> render figures -> write reports/runs/<run>/.
 Each run is a single MLflow run holding the configs, the code commit, dataset
 fingerprints, per-epoch training metrics, test metrics, latency and reports.
 """
+
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -87,10 +88,15 @@ def run_pipeline(
 
         _step("Calibrate RT-DETR score threshold on val")
         iou_threshold = configs.pipeline["calibration"]["iou_threshold"]
-        calibration = calibrate_threshold(permissive_rtdetr, splits["val"], image_dir, iou_threshold)
+        calibration = calibrate_threshold(
+            permissive_rtdetr, splits["val"], image_dir, iou_threshold
+        )
         calibration.save(checkpoint)
         mlflow.log_metrics(
-            prefixed({k: v for k, v in asdict(calibration).items() if k != "iou_threshold"}, "calibration")
+            prefixed(
+                {k: v for k, v in asdict(calibration).items() if k != "iou_threshold"},
+                "calibration",
+            )
         )
         logger.info("Threshold %.3f (F1 %.3f on val)", calibration.score_threshold, calibration.f1)
 
@@ -113,7 +119,9 @@ def run_pipeline(
 
         if render_figures:
             _step("Render figures")
-            _render_figures(configs, checkpoint, splits["test"], run_dir, calibration.score_threshold)
+            _render_figures(
+                configs, checkpoint, splits["test"], run_dir, calibration.score_threshold
+            )
 
         summary = {
             "run": run_name,
@@ -165,7 +173,9 @@ def _split(configs: PipelineConfigs) -> dict[str, dict[str, Any]]:
 
     empty = [name for name, split in splits.items() if not split["images"]]
     if empty:
-        raise ValueError(f"Splits without reviewed images: {empty}. Review images from their videos.")
+        raise ValueError(
+            f"Splits without reviewed images: {empty}. Review images from their videos."
+        )
 
     write_splits(
         splits,
@@ -191,7 +201,9 @@ def _log_run_context(
         "data.reviewed_annotations_sha256": file_digest(Path(data_cfg["reviewed_annotations"])),
         "data.split_assignment_sha256": file_digest(Path(data_cfg["split_assignment"])),
         **{
-            f"data.{split}_sha256": file_digest(Path(configs.rtdetr["data"][f"{split}_annotations"]))
+            f"data.{split}_sha256": file_digest(
+                Path(configs.rtdetr["data"][f"{split}_annotations"])
+            )
             for split in SPLIT_NAMES
         },
     }
@@ -220,11 +232,15 @@ def _benchmark(
     image_dir: Path,
 ) -> dict[str, Any]:
     latency_cfg = configs.pipeline["latency"]
-    images = [Image.open(image_dir / info["file_name"]).convert("RGB") for info in test_split["images"]]
+    images = [
+        Image.open(image_dir / info["file_name"]).convert("RGB") for info in test_split["images"]
+    ]
     return {
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "models": {
-            name: measure_latency(detector, images, latency_cfg["warmup"], latency_cfg["repeats"]).to_dict()
+            name: measure_latency(
+                detector, images, latency_cfg["warmup"], latency_cfg["repeats"]
+            ).to_dict()
             for name, detector in detectors.items()
         },
     }

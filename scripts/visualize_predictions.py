@@ -8,6 +8,7 @@ timestamp/GPS overlay.
 Usage:
     python scripts/visualize_predictions.py --checkpoint checkpoints/rtdetr/<run>/best
 """
+
 import argparse
 import json
 from pathlib import Path

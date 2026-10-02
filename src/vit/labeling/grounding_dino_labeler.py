@@ -4,6 +4,7 @@ Used as the first stage of the labeling pipeline: generates candidate boxes
 via text prompts so a human only has to review/correct them instead of
 annotating from scratch.
 """
+
 import torch
 from PIL import Image
 from torchvision.ops import nms

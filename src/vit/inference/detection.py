@@ -1,4 +1,5 @@
 """Model-agnostic detection types shared by every detector in the project."""
+
 from dataclasses import dataclass
 from typing import Protocol
 

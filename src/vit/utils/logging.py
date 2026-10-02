@@ -1,4 +1,5 @@
 """Shared logging setup: console + rotating file handler under logs/."""
+
 import logging
 from pathlib import Path
 

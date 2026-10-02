@@ -6,7 +6,10 @@ from vit.inference.detection import BoxProposal
 
 def test_draw_detections_adds_title_bar_above_the_image():
     panel = draw_detections(
-        Image.new("RGB", (200, 100)), [[10, 10, 50, 50]], [BoxProposal("billboard", 0.9, (10, 10, 60, 60))], "t"
+        Image.new("RGB", (200, 100)),
+        [[10, 10, 50, 50]],
+        [BoxProposal("billboard", 0.9, (10, 10, 60, 60))],
+        "t",
     )
 
     assert panel.size == (200, 100 + TITLE_BAR_HEIGHT)

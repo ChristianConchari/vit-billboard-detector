@@ -24,7 +24,14 @@ def coco_dir(tmp_path):
             {"id": 1, "file_name": "a_2.jpg", "width": 200, "height": 100},
         ],
         "annotations": [
-            {"id": 0, "image_id": 0, "category_id": 0, "bbox": [10, 20, 50, 40], "area": 2000, "iscrowd": 0}
+            {
+                "id": 0,
+                "image_id": 0,
+                "category_id": 0,
+                "bbox": [10, 20, 50, 40],
+                "area": 2000,
+                "iscrowd": 0,
+            }
         ],
         "categories": [{"id": 0, "name": "billboard"}],
     }
@@ -69,7 +76,9 @@ def test_augmented_boxes_stay_inside_the_image():
     image = Image.new("RGB", (200, 100))
 
     for _ in range(20):
-        augmented, boxes, labels = apply_augmentations(augmentations, image, [[150, 60, 50, 40]], [0])
+        augmented, boxes, labels = apply_augmentations(
+            augmentations, image, [[150, 60, 50, 40]], [0]
+        )
         assert len(boxes) == len(labels)
         for x, y, w, h in boxes:
             assert x >= 0 and y >= 0 and w > 0 and h > 0

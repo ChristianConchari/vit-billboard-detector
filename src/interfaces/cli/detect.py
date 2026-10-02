@@ -6,6 +6,7 @@ Usage:
     billboard-detect path/to/video.mp4 --checkpoint checkpoints/rtdetr/<run>/best
     billboard-detect path/to/images/ --checkpoint checkpoints/rtdetr/<run>/best
 """
+
 import argparse
 import json
 import time
@@ -40,9 +41,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def resolve_score_threshold(
-    requested: float | None, checkpoint_dir: Path, config: dict
-) -> float:
+def resolve_score_threshold(requested: float | None, checkpoint_dir: Path, config: dict) -> float:
     if requested is not None:
         return requested
     calibrated = load_calibrated_threshold(checkpoint_dir)
@@ -59,7 +58,9 @@ def main() -> None:
     config = load_config(args.config)
     score_threshold = resolve_score_threshold(args.score_threshold, Path(args.checkpoint), config)
     logger.info("Score threshold: %.3f", score_threshold)
-    detector = build_rtdetr_detector(args.checkpoint, config["model"]["label_names"], score_threshold)
+    detector = build_rtdetr_detector(
+        args.checkpoint, config["model"]["label_names"], score_threshold
+    )
 
     start = time.perf_counter()
     if is_video(args.source):

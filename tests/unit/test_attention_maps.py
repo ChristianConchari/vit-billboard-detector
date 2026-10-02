@@ -39,7 +39,9 @@ def test_deformable_sampling_offsets_points_relative_to_the_reference_box():
 
     points = locations.reshape(-1, 2)
     assert points[0].tolist() == pytest.approx([0.5, 0.5])
-    assert points[1].tolist() == pytest.approx([0.5 + 2.0 / 2 * 0.2 * 0.5, 0.5 - 2.0 / 2 * 0.4 * 0.5])
+    assert points[1].tolist() == pytest.approx(
+        [0.5 + 2.0 / 2 * 0.2 * 0.5, 0.5 - 2.0 / 2 * 0.4 * 0.5]
+    )
     assert weights.reshape(-1).tolist() == pytest.approx([0.5, 0.5])
 
 

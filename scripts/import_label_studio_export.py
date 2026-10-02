@@ -3,6 +3,7 @@
 Usage:
     python scripts/import_label_studio_export.py --export-path ~/Downloads/project-1-at-....zip
 """
+
 import argparse
 from pathlib import Path
 

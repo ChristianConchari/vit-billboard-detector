@@ -5,6 +5,7 @@ splits (see docs/decisions/0002-split-by-video.md). Whole videos are assigned
 to a split once, over the full image pool, and that assignment is reused for
 every (partial) reviewed export so splits stay stable while labeling grows.
 """
+
 import json
 import random
 from collections import Counter
@@ -120,9 +121,7 @@ def write_splits(splits: dict[str, dict[str, Any]], paths: dict[str, Path]) -> N
         paths[name].write_text(json.dumps(subset, indent=2))
 
 
-def exclude_split(
-    coco: dict[str, Any], assignment: dict[str, str], split: str
-) -> dict[str, Any]:
+def exclude_split(coco: dict[str, Any], assignment: dict[str, str], split: str) -> dict[str, Any]:
     """Drop the images (and their annotations) whose video is assigned to `split`."""
     kept_ids = {
         image["id"]
@@ -130,4 +129,3 @@ def exclude_split(
         if assignment.get(video_id_from_file_name(image["file_name"])) != split
     }
     return _subset(coco, kept_ids)
-

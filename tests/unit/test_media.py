@@ -40,7 +40,9 @@ def test_detect_in_images_saves_annotated_copies_and_records(tmp_path):
     Image.new("RGB", (64, 50)).save(tmp_path / "a_1.jpg")
     detector = FixedDetector()
 
-    records = detect_in_images(detector, [tmp_path / "a_1.jpg"], tmp_path / "out", overlay_fraction=0.1)
+    records = detect_in_images(
+        detector, [tmp_path / "a_1.jpg"], tmp_path / "out", overlay_fraction=0.1
+    )
 
     assert detector.seen_sizes == [(64, 45)]
     assert Image.open(tmp_path / "out" / "a_1.jpg").size == (64, 45)

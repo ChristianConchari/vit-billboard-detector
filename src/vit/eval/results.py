@@ -1,4 +1,5 @@
 """Render a pipeline run summary as Markdown tables for the README and the report."""
+
 from typing import Any
 
 from vit.eval.coco_evaluation import METRIC_NAMES

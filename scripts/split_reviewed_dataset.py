@@ -8,6 +8,7 @@ Usage:
     python scripts/split_reviewed_dataset.py
     python scripts/split_reviewed_dataset.py --rebuild-assignment  # after adding new videos
 """
+
 import argparse
 import json
 from pathlib import Path
@@ -26,11 +27,15 @@ MIN_RECOMMENDED_IMAGES = 20
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Split a reviewed COCO dataset into train/val/test")
+    parser = argparse.ArgumentParser(
+        description="Split a reviewed COCO dataset into train/val/test"
+    )
     parser.add_argument("--input", default="data/annotations/reviewed/reviewed_master.json")
     parser.add_argument("--output-dir", default="data/annotations/reviewed")
     parser.add_argument("--assignment", default="data/annotations/reviewed/split_assignment.json")
-    parser.add_argument("--pool-dir", default="data/raw", help="Full image pool used to build the assignment")
+    parser.add_argument(
+        "--pool-dir", default="data/raw", help="Full image pool used to build the assignment"
+    )
     parser.add_argument("--rebuild-assignment", action="store_true")
     parser.add_argument("--train-ratio", type=float, default=0.7)
     parser.add_argument("--val-ratio", type=float, default=0.15)

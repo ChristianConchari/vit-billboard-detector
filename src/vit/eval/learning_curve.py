@@ -3,6 +3,7 @@
 Only runs that trained a model and share the exact same test split are
 comparable; mixing test sets would make the curve meaningless, so it's refused.
 """
+
 import csv
 import statistics
 from collections import defaultdict
@@ -169,4 +170,3 @@ def write_curve_table(points: list[CurvePoint], zero_shot_map: float, output_pat
         writer.writeheader()
         for point in points:
             writer.writerow({**asdict(point), "zero_shot_map": zero_shot_map})
-

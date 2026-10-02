@@ -1,4 +1,5 @@
 """COCO-style evaluation (mAP, AP50, AP75, AP by object size) for any Detector."""
+
 import contextlib
 import io
 from pathlib import Path
@@ -13,7 +14,9 @@ from vit.inference.detection import Detector
 METRIC_NAMES = ("mAP", "AP50", "AP75", "AP_small", "AP_medium", "AP_large")
 
 
-def coco_metrics(ground_truth: dict[str, Any], detections: list[dict[str, Any]]) -> dict[str, float]:
+def coco_metrics(
+    ground_truth: dict[str, Any], detections: list[dict[str, Any]]
+) -> dict[str, float]:
     """Run COCOeval on in-memory ground truth and detections.
 
     Follows the COCO convention of reporting -1 for a size range with no

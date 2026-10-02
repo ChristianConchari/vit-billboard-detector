@@ -8,6 +8,7 @@ reports/figures/attention_<split>/, with the timestamp/GPS overlay cropped.
 Usage:
     python scripts/visualize_attention.py --checkpoint checkpoints/rtdetr/<run>/best
 """
+
 import argparse
 import json
 from pathlib import Path

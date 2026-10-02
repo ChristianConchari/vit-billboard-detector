@@ -85,7 +85,10 @@ def test_copy_referenced_images_copies_matches_and_reports_missing(tmp_path):
 
 def test_import_label_studio_export_falls_back_to_raw_images(tmp_path):
     zip_path = tmp_path / "export.zip"
-    exported = {**VALID_COCO, "images": [{**VALID_COCO["images"][0], "file_name": "../../raw/a.jpg"}]}
+    exported = {
+        **VALID_COCO,
+        "images": [{**VALID_COCO["images"][0], "file_name": "../../raw/a.jpg"}],
+    }
     with zipfile.ZipFile(zip_path, "w") as zf:
         zf.writestr("result.json", json.dumps(exported))
     raw_dir = tmp_path / "raw"
@@ -104,4 +107,3 @@ def test_import_label_studio_export_falls_back_to_raw_images(tmp_path):
     assert coco["images"][0]["file_name"] == "a.jpg"
     assert (tmp_path / "processed" / "a.jpg").read_bytes() == b"fake-bytes"
     assert json.loads((tmp_path / "reviewed" / "master.json").read_text()) == coco
-

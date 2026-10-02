@@ -1,4 +1,5 @@
 """Run a Detector over image files, image folders and videos, saving annotated copies."""
+
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -60,7 +61,9 @@ def detect_in_video(
                     fps,
                     image.size,
                 )
-            writer.write(cv2.cvtColor(np.asarray(draw_predictions(image, proposals)), cv2.COLOR_RGB2BGR))
+            writer.write(
+                cv2.cvtColor(np.asarray(draw_predictions(image, proposals)), cv2.COLOR_RGB2BGR)
+            )
             records.append(_record(video_path.name, frame_index, proposals))
     finally:
         capture.release()

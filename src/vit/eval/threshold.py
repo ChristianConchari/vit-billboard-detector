@@ -1,4 +1,5 @@
 """Pick the score threshold that maximizes F1 on a labeled split."""
+
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path

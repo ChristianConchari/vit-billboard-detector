@@ -3,6 +3,7 @@
 Usage:
     python scripts/train_rtdetr.py --config configs/model/rtdetr.yaml
 """
+
 import argparse
 
 import mlflow

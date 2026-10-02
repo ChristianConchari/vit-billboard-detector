@@ -1,4 +1,5 @@
 """PyTorch dataset over a COCO detection file, producing Hugging Face processor inputs."""
+
 import json
 from collections import defaultdict
 from pathlib import Path

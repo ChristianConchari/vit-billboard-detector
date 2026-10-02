@@ -1,4 +1,5 @@
 """Draw boxes and attention maps for qualitative comparison of detectors."""
+
 import numpy as np
 from matplotlib import colormaps
 from PIL import Image, ImageDraw, ImageFont
@@ -35,7 +36,9 @@ def draw_predictions(image: Image.Image, proposals: list[BoxProposal]) -> Image.
     return canvas
 
 
-def draw_encoder_attention(image: Image.Image, detection: DetectionAttention, title: str) -> Image.Image:
+def draw_encoder_attention(
+    image: Image.Image, detection: DetectionAttention, title: str
+) -> Image.Image:
     """Overlay the encoder self-attention of the token under the detection's center."""
     attention = detection.encoder_attention / detection.encoder_attention.max()
     heatmap = Image.fromarray(np.uint8(ATTENTION_COLORMAP(attention)[..., :3] * 255))
@@ -45,7 +48,9 @@ def draw_encoder_attention(image: Image.Image, detection: DetectionAttention, ti
     return _with_title(canvas, title)
 
 
-def draw_sampling_points(image: Image.Image, detection: DetectionAttention, title: str) -> Image.Image:
+def draw_sampling_points(
+    image: Image.Image, detection: DetectionAttention, title: str
+) -> Image.Image:
     """Draw the decoder query's deformable sampling points, sized and colored by weight."""
     canvas = Image.blend(image, Image.new("RGB", image.size), alpha=0.35)
     draw = ImageDraw.Draw(canvas)

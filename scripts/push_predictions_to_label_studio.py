@@ -9,6 +9,7 @@ Usage:
 Test videos are labeled from scratch (docs/decisions/0003-label-test-from-scratch.md),
 so they must not receive pre-labels.
 """
+
 import argparse
 import json
 import os
@@ -22,7 +23,9 @@ logger = get_logger(__name__, log_file="labeling.log")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Push COCO auto-labels as Label Studio predictions")
+    parser = argparse.ArgumentParser(
+        description="Push COCO auto-labels as Label Studio predictions"
+    )
     parser.add_argument("--label-studio-url", default="http://localhost:8080")
     parser.add_argument("--api-key", default=os.environ.get("LABEL_STUDIO_API_KEY"))
     parser.add_argument("--project-id", type=int, required=True)
@@ -33,7 +36,9 @@ def parse_args() -> argparse.Namespace:
         choices=["train", "val", "test"],
         help="Don't pre-label images whose video belongs to this split",
     )
-    parser.add_argument("--split-assignment", default="data/annotations/reviewed/split_assignment.json")
+    parser.add_argument(
+        "--split-assignment", default="data/annotations/reviewed/split_assignment.json"
+    )
     return parser.parse_args()
 
 
@@ -49,7 +54,11 @@ def main() -> None:
     if args.exclude_split:
         assignment = json.loads(Path(args.split_assignment).read_text())
         coco = exclude_split(coco, assignment, args.exclude_split)
-        logger.info("Excluding %s videos: %d image(s) left to pre-label", args.exclude_split, len(coco["images"]))
+        logger.info(
+            "Excluding %s videos: %d image(s) left to pre-label",
+            args.exclude_split,
+            len(coco["images"]),
+        )
 
     summary = push_predictions(
         label_studio_url=args.label_studio_url,

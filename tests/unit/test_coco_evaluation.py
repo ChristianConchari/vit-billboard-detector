@@ -9,7 +9,14 @@ def _ground_truth(categories=None):
     return {
         "images": [{"id": 1, "file_name": "a_1.jpg", "width": 640, "height": 480}],
         "annotations": [
-            {"id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 100, 200, 150], "area": 30000, "iscrowd": 0}
+            {
+                "id": 1,
+                "image_id": 1,
+                "category_id": 0,
+                "bbox": [100, 100, 200, 150],
+                "area": 30000,
+                "iscrowd": 0,
+            }
         ],
         "categories": categories or [{"id": 0, "name": "billboard"}],
     }

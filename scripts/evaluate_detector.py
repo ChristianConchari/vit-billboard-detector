@@ -8,6 +8,7 @@ Usage:
     python scripts/evaluate_detector.py --model rtdetr --checkpoint checkpoints/rtdetr/<run>/best
     python scripts/evaluate_detector.py --model grounding-dino
 """
+
 import argparse
 import json
 from pathlib import Path
@@ -24,7 +25,9 @@ logger = get_logger(__name__, log_file="evaluation.log")
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate a detector with COCO metrics")
     parser.add_argument("--model", choices=["rtdetr", "grounding-dino"], required=True)
-    parser.add_argument("--checkpoint", help="Fine-tuned RT-DETR checkpoint dir (required for rtdetr)")
+    parser.add_argument(
+        "--checkpoint", help="Fine-tuned RT-DETR checkpoint dir (required for rtdetr)"
+    )
     parser.add_argument("--split", choices=["train", "val", "test"], default="test")
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
     parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
@@ -54,7 +57,9 @@ def main() -> None:
     data_config = rtdetr_config["data"]
     ground_truth = json.loads(Path(data_config[f"{args.split}_annotations"]).read_text())
 
-    metrics = evaluate_detector(build_detector(args, rtdetr_config), ground_truth, data_config["image_dir"])
+    metrics = evaluate_detector(
+        build_detector(args, rtdetr_config), ground_truth, data_config["image_dir"]
+    )
 
     output_path = Path(args.output_dir) / f"{args.model}_{args.split}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)

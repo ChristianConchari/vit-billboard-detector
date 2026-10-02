@@ -1,4 +1,5 @@
 """Box-aware training augmentations built on torchvision.transforms.v2."""
+
 from typing import Any
 
 import torch

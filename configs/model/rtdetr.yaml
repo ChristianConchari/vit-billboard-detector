@@ -33,7 +33,8 @@ evaluation:
   score_threshold: 0.01
 
 inference:
-  # The current model is under-confident (max test score ~0.3); recalibrate after retraining.
+  # Fallback only: the threshold calibrated on val (calibration.json) takes precedence,
+  # because the score scale varies between trainings.
   score_threshold: 0.15
 
 mlflow:

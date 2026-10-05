@@ -6,7 +6,7 @@ Detection of **out-of-home (OOH) advertising billboards** in street-level video 
 
 The challenge is the data: 632 unlabeled frames and little time to annotate them. The project therefore works in two stages:
 
-1. **Auto-labeling.** [Grounding DINO](https://arxiv.org/abs/2303.05499), an open-vocabulary detector, proposes boxes from text prompts ("billboard", "advertising sign"). A human only reviews and corrects them.
+1. **Auto-labeling.** [Grounding DINO](https://arxiv.org/abs/2303.05499), an open-vocabulary detector, proposes boxes from text prompts ("billboard", "advertising sign", "ooh ad"). A human only reviews and corrects them.
 2. **Fine-tuning.** [RT-DETR](https://arxiv.org/abs/2304.08069), a real-time DETR pretrained on COCO, is fine-tuned on the reviewed boxes and compared with Grounding DINO used zero-shot.
 
 ![Demo: RT-DETR detections on consecutive frames](reports/figures/examples/demo.gif)
@@ -107,7 +107,7 @@ Every run of the pipeline is an MLflow run. The table below lists the learning-c
 
 ![MLflow runs](reports/figures/mlflow/runs.png)
 
-The [validation curves of the ablation](reports/figures/mlflow/val_map_ablation.png) show that three of the five runs lose validation mAP after epoch ~10; keeping the best validation epoch protects the final checkpoints from that overfitting.
+The [validation curves](reports/experiments/training_curves.png) show that four of the six runs with 441 training images lose validation mAP after epoch ~10; keeping the best validation epoch protects the final checkpoints from that overfitting. The [MLflow view of the ablation](reports/figures/mlflow/val_map_ablation.png) shows five of them: the sixth, frozen with seed 42, is tracked as the last point of the learning curve.
 
 ## Getting started
 

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vit-billboard-detector"
 version = "0.1.0"
-description = "ViT-based OOH billboard detection (Computer Vision II final project)"
+description = "ViT-based OOH billboard detection (Computer Vision III final project)"
 requires-python = ">=3.10"
 
 [project.scripts]

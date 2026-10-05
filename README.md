@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ChristianConchari/vit-billboard-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/ChristianConchari/vit-billboard-detector/actions/workflows/ci.yml)
 
-Detection of **out-of-home (OOH) advertising billboards** in street-level video frames, with Transformer-based detectors. Final project for **Computer Vision II** (MIA-CEIA, FIUBA).
+Detection of **out-of-home (OOH) advertising billboards** in street-level video frames, with Transformer-based detectors. Final project for **Computer Vision III** (MIA-CEIA, FIUBA).
 
 The challenge is the data: 632 unlabeled frames and little time to annotate them. The project therefore works in two stages:
 

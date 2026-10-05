@@ -113,17 +113,36 @@ pytest -q
 
 ### Try the trained model
 
-The final checkpoint (164 MB) is published as a
-[GitHub release](https://github.com/ChristianConchari/vit-billboard-detector/releases/tag/model-v1).
-The script downloads it, verifies its SHA-256 and unpacks it:
+The final checkpoint (164 MB) is published in the
+[`model-v1` release](https://github.com/ChristianConchari/vit-billboard-detector/releases/tag/model-v1).
+It runs on GPU or CPU.
 
-```bash
-python scripts/download_model.py
-billboard-detect path/to/image_or_video --checkpoint checkpoints/rtdetr-billboard
-```
+1. Install the project as shown above.
+2. Download the weights. The script verifies the SHA-256 and unpacks them into
+   `checkpoints/rtdetr-billboard/`:
 
-Annotated copies and `detections.json` are written to `outputs/detections/`. The score threshold calibrated on
-validation (0.15) is read from the checkpoint.
+   ```bash
+   python scripts/download_model.py
+   ```
+
+   To do it by hand instead, download `rtdetr-billboard.zip` from the release
+   and unzip it into `checkpoints/`.
+3. Run the detector on an image, a folder of images or a video:
+
+   ```bash
+   billboard-detect path/to/street.jpg --checkpoint checkpoints/rtdetr-billboard --overlay-fraction 0
+   billboard-detect path/to/frames/    --checkpoint checkpoints/rtdetr-billboard --overlay-fraction 0
+   billboard-detect path/to/drive.mp4  --checkpoint checkpoints/rtdetr-billboard --overlay-fraction 0
+   ```
+
+Annotated copies and a `detections.json` file (boxes in pixels, `xyxy`, with
+scores) are written to `outputs/detections/`. Useful options:
+
+| Option | Default | Meaning |
+|--|--|--|
+| `--score-threshold` | 0.15, calibrated on validation and stored with the checkpoint | Minimum score to keep a box |
+| `--overlay-fraction` | 0.08 | Bottom part of each frame to crop. The dataset cameras print a timestamp there; use `0` for other images |
+| `--output-dir` | `outputs/detections` | Where to write the results |
 
 ### Reproduce the results
 

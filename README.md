@@ -101,6 +101,14 @@ flowchart LR
 
 One command runs steps 2 to 4 and records every run in MLflow, with the code version, the data version and all settings. Details of each component, including RT-DETR's internals, are in [`docs/architecture/`](docs/architecture/README.md).
 
+### Experiment tracking
+
+Every run of the pipeline is an MLflow run. The table below lists the learning-curve and ablation runs with their settings and scores; each run also stores the git commit and a fingerprint of every data split, so any number can be traced back to the exact code and data that produced it ([final model's run](reports/figures/mlflow/final_run.png)).
+
+![MLflow runs](reports/figures/mlflow/runs.png)
+
+The [validation curves of the ablation](reports/figures/mlflow/val_map_ablation.png) show that three of the five runs lose validation mAP after epoch ~10; keeping the best validation epoch protects the final checkpoints from that overfitting.
+
 ## Getting started
 
 Tested with Python 3.12. The tests run on CPU and download no model:

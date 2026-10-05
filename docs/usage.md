@@ -80,6 +80,12 @@ Each `run_pipeline.py` execution is **one MLflow run** with:
 - **metrics**: `train/loss` and `val/*` per epoch, `val/best_mAP`, `calibration/*`, `test/<model>/*` and `latency/<model>/*`;
 - **artifacts**: the effective configs (`configs/`), `results.md`, `summary.json` and `calibration.json` (`reports/`). The checkpoint itself is logged only if `tracking.log_checkpoint` is enabled in `configs/pipeline.yaml`, because it weighs ~170 MB.
 
+In the MLflow UI, the runs table, the per-epoch charts and the run page with its reproducibility tags look like this:
+
+![Runs table](../reports/figures/mlflow/runs.png)
+![Validation mAP per epoch, ablation runs](../reports/figures/mlflow/val_map_ablation.png)
+![Final model's run](../reports/figures/mlflow/final_run.png)
+
 `scripts/train_rtdetr.py` creates a training-only run with the same naming. A pipeline run with `--checkpoint` is named `<run>-evaluation`.
 
 ### Exporting the experiment record

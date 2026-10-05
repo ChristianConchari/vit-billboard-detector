@@ -23,6 +23,7 @@ from vit.eval.chart_style import (
 )
 
 TEST_METRICS = ("mAP", "AP50", "AP75")
+EPOCH_METRICS = ("train/loss", "val/mAP", "val/AP50", "val/AP75")
 
 
 @dataclass
@@ -45,7 +46,11 @@ class RunRecord:
     git_dirty: str
     train_fingerprint: str
     test_fingerprint: str
-    val_map_by_epoch: list[float] = field(default_factory=list, repr=False)
+    epoch_history: dict[str, list[float]] = field(default_factory=dict, repr=False)
+
+    @property
+    def val_map_by_epoch(self) -> list[float]:
+        return self.epoch_history.get("val/mAP", [])
 
 
 @dataclass
@@ -79,9 +84,15 @@ def fetch_run_records(
 
 def _record(client: MlflowClient, run) -> RunRecord:
     tags, params, metrics = run.data.tags, run.data.params, run.data.metrics
-    history = sorted(
-        client.get_metric_history(run.info.run_id, "val/mAP"), key=lambda m: m.step
-    )
+    epoch_history = {
+        key: [
+            m.value
+            for m in sorted(
+                client.get_metric_history(run.info.run_id, key), key=lambda m: m.step
+            )
+        ]
+        for key in EPOCH_METRICS
+    }
     return RunRecord(
         run_name=run.info.run_name,
         note=tags.get("note", ""),
@@ -101,12 +112,12 @@ def _record(client: MlflowClient, run) -> RunRecord:
         git_dirty=tags["git.dirty"],
         train_fingerprint=tags.get("data.train_fingerprint", ""),
         test_fingerprint=tags["data.test_fingerprint"],
-        val_map_by_epoch=[m.value for m in history],
+        epoch_history=epoch_history,
     )
 
 
 def write_runs_csv(records: list[RunRecord], output_path: Path) -> None:
-    columns = [f.name for f in fields(RunRecord) if f.name != "val_map_by_epoch"]
+    columns = [f.name for f in fields(RunRecord) if f.name != "epoch_history"]
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="") as file:
         writer = csv.DictWriter(file, columns, extrasaction="ignore")
@@ -118,6 +129,22 @@ def write_runs_csv(records: list[RunRecord], output_path: Path) -> None:
                     for k, v in asdict(record).items()
                 }
             )
+
+
+def write_epochs_csv(records: list[RunRecord], output_path: Path) -> None:
+    """One row per run and epoch, so training curves can be redrawn without MLflow."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["run_name", "epoch", *EPOCH_METRICS])
+        for record in records:
+            epochs = max(map(len, record.epoch_history.values()), default=0)
+            for epoch in range(epochs):
+                values = [
+                    round(history[epoch], 4) if epoch < len(history) else ""
+                    for history in map(record.epoch_history.get, EPOCH_METRICS)
+                ]
+                writer.writerow([record.run_name, epoch + 1, *values])
 
 
 def summarize_by_config(records: list[RunRecord]) -> list[ConfigSummary]:

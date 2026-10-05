@@ -1,6 +1,7 @@
 """CLI: export the MLflow experiment record to reports/experiments/ for versioning.
 
-Writes runs.csv (one row per run), summary.md (learning curve and backbone ablation
+Writes runs.csv (one row per run), epochs.csv (loss and val metrics per epoch),
+summary.md (learning curve and backbone ablation
 with mean and range over seeds) and training_curves.png. Only runs evaluated on the
 current test split are included (matched by its content fingerprint).
 
@@ -17,6 +18,7 @@ from vit.eval.experiments import (
     fetch_run_records,
     plot_training_curves,
     summary_markdown,
+    write_epochs_csv,
     write_runs_csv,
 )
 from vit.utils.config import load_config
@@ -49,6 +51,7 @@ def main() -> None:
         raise SystemExit(f"No tracked runs evaluated on the test split {fingerprint}")
 
     write_runs_csv(records, args.output_dir / "runs.csv")
+    write_epochs_csv(records, args.output_dir / "epochs.csv")
     (args.output_dir / "summary.md").write_text(summary_markdown(records))
     plot_training_curves(records, args.output_dir / "training_curves.png")
     logger.info(

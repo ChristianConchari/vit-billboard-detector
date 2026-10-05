@@ -27,7 +27,7 @@ Settings live in `configs/`.
 | `analyze_attention.py --checkpoint <dir>` | Encoder attention on other billboards, `reports/metrics/attention_test.json` |
 | `visualize_predictions.py`, `visualize_attention.py` | Prediction and attention figures |
 | `plot_learning_curve.py --note learning-curve` | `reports/figures/learning_curve.png` |
-| `export_experiments.py` | `reports/experiments/`: every run as CSV, ablation summary, training curves |
+| `export_experiments.py` | `reports/experiments/`: runs and per-epoch metrics as CSV, ablation summary, training curves |
 
 ## Experiment tracking
 

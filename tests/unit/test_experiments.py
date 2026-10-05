@@ -9,6 +9,7 @@ from vit.eval.experiments import (
     plot_training_curves,
     summarize_by_config,
     summary_markdown,
+    write_epochs_csv,
     write_runs_csv,
 )
 
@@ -33,7 +34,12 @@ def _record(name, frozen, seed, train_images, test_map, note="ablation"):
         git_dirty="false",
         train_fingerprint="train-fp",
         test_fingerprint="test-fp",
-        val_map_by_epoch=[0.5, 0.7, 0.76],
+        epoch_history={
+            "train/loss": [9.0, 7.0, 6.0],
+            "val/mAP": [0.5, 0.7, 0.76],
+            "val/AP50": [0.8, 0.9, 0.92],
+            "val/AP75": [0.6, 0.75, 0.8],
+        },
     )
 
 
@@ -71,8 +77,23 @@ def test_csv_and_training_curves_are_written(tmp_path):
 
     rows = list(csv.DictReader((tmp_path / "runs.csv").open()))
     assert [row["run_name"] for row in rows] == [r.run_name for r in RECORDS]
-    assert "val_map_by_epoch" not in rows[0]
+    assert "epoch_history" not in rows[0]
     assert (tmp_path / "curves.png").stat().st_size > 0
+
+
+def test_epochs_csv_has_one_row_per_run_and_epoch(tmp_path):
+    write_epochs_csv(RECORDS[:2], tmp_path / "epochs.csv")
+
+    rows = list(csv.DictReader((tmp_path / "epochs.csv").open()))
+    assert len(rows) == 6
+    assert rows[2] == {
+        "run_name": "lc-66",
+        "epoch": "3",
+        "train/loss": "6.0",
+        "val/mAP": "0.76",
+        "val/AP50": "0.92",
+        "val/AP75": "0.8",
+    }
 
 
 def test_fetch_keeps_only_finished_runs_on_the_given_test_split(tmp_path):

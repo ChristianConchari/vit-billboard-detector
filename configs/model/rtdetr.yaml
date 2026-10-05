@@ -39,3 +39,9 @@ inference:
 mlflow:
   experiment_name: "vit-billboard-detector"
   tracking_uri: "sqlite:///mlflow.db"
+
+release:
+  # Final model (backbone unfrozen, seed 2), published as a GitHub release asset.
+  weights_url: "https://github.com/ChristianConchari/vit-billboard-detector/releases/download/model-v1/rtdetr-billboard.zip"
+  weights_sha256: "264ea1bcf879b08c4cbfb0f82585b31ff3331d562a676786047ca0a5a2e820af"
+  checkpoint_dir: "checkpoints/rtdetr-billboard"

@@ -111,14 +111,26 @@ pip install -e . -r requirements.txt
 pytest -q
 ```
 
-The dataset and the trained weights are private and not included. With them in place:
+### Try the trained model
+
+The final checkpoint (164 MB) is published as a
+[GitHub release](https://github.com/ChristianConchari/vit-billboard-detector/releases/tag/model-v1).
+The script downloads it, verifies its SHA-256 and unpacks it:
 
 ```bash
-# Reproduce every result from a Label Studio export
-python scripts/run_pipeline.py --export-path <export>.zip
+python scripts/download_model.py
+billboard-detect path/to/image_or_video --checkpoint checkpoints/rtdetr-billboard
+```
 
-# Detect billboards in an image, a folder or a video
-billboard-detect path/to/video.mp4 --checkpoint checkpoints/rtdetr/<run>/best
+Annotated copies and `detections.json` are written to `outputs/detections/`. The score threshold calibrated on
+validation (0.15) is read from the checkpoint.
+
+### Reproduce the results
+
+The dataset is private and not included. With a Label Studio export in place:
+
+```bash
+python scripts/run_pipeline.py --export-path <export>.zip
 ```
 
 ## Repository structure

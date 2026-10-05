@@ -126,9 +126,10 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
     )
     axes.annotate(
         f"Grounding DINO zero-shot {zero_shot_map:.2f}",
-        (sizes[0], zero_shot_map),
-        xytext=(0, 6),
+        (sizes[-1], zero_shot_map),
+        xytext=(0, 6 if last.mean_map < zero_shot_map else -14),
         textcoords="offset points",
+        ha="right",
         color=TEXT_PRIMARY,
         fontsize=9,
     )

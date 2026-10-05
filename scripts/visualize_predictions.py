@@ -13,6 +13,7 @@ import argparse
 import json
 from pathlib import Path
 
+from vit.data.dataset_split import subset_by_file_names
 from vit.eval.figures import render_detector_comparison
 from vit.inference.factory import build_grounding_dino_detector, build_rtdetr_detector
 from vit.utils.config import load_config
@@ -35,6 +36,12 @@ def parse_args() -> argparse.Namespace:
         default=0.08,
         help="Bottom fraction of each frame to crop (timestamp/GPS overlay); 0 keeps it",
     )
+    parser.add_argument(
+        "--images",
+        nargs="+",
+        metavar="FILE_NAME",
+        help="Render only these images of the split (e.g. the hand-picked README examples)",
+    )
     parser.add_argument("--output-dir", default="reports/figures")
     return parser.parse_args()
 
@@ -44,6 +51,8 @@ def main() -> None:
     rtdetr_config = load_config(args.rtdetr_config)
     data_config = rtdetr_config["data"]
     ground_truth = json.loads(Path(data_config[f"{args.split}_annotations"]).read_text())
+    if args.images:
+        ground_truth = subset_by_file_names(ground_truth, args.images)
 
     detectors = {
         f"RT-DETR fine-tuned (score >= {args.rtdetr_threshold})": build_rtdetr_detector(

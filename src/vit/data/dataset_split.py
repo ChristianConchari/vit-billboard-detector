@@ -134,6 +134,15 @@ def exclude_split(coco: dict[str, Any], assignment: dict[str, str], split: str) 
     return _subset(coco, kept_ids)
 
 
+def subset_by_file_names(coco: dict[str, Any], file_names: list[str]) -> dict[str, Any]:
+    """Keep only the named images (and their annotations); unknown names are an error."""
+    ids_by_name = {image["file_name"]: image["id"] for image in coco["images"]}
+    missing = [name for name in file_names if name not in ids_by_name]
+    if missing:
+        raise ValueError(f"Images not in the split: {missing}")
+    return _subset(coco, {ids_by_name[name] for name in file_names})
+
+
 def split_fingerprint(coco: dict[str, Any]) -> str:
     """Hash of a split's content: image file names and their boxes.
 

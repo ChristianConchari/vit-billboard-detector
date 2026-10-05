@@ -6,6 +6,7 @@ from vit.data.dataset_split import (
     load_or_build_assignment,
     split_coco_by_video,
     split_fingerprint,
+    subset_by_file_names,
     video_id_from_file_name,
     write_splits,
 )
@@ -159,3 +160,17 @@ def test_split_fingerprint_ignores_ids_and_order_but_not_boxes():
 
     assert split_fingerprint(renumbered) == split_fingerprint(coco)
     assert split_fingerprint(moved_box) != split_fingerprint(coco)
+
+
+def test_subset_by_file_names_keeps_only_the_named_images():
+    coco = _make_coco(["a_1.jpg", "b_1.jpg", "c_1.jpg"])
+
+    subset = subset_by_file_names(coco, ["c_1.jpg", "a_1.jpg"])
+
+    assert sorted(img["file_name"] for img in subset["images"]) == ["a_1.jpg", "c_1.jpg"]
+    assert {a["image_id"] for a in subset["annotations"]} == {1, 3}
+
+
+def test_subset_by_file_names_rejects_unknown_images():
+    with pytest.raises(ValueError, match="z_9.jpg"):
+        subset_by_file_names(_make_coco(["a_1.jpg"]), ["z_9.jpg"])

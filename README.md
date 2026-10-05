@@ -61,6 +61,65 @@ flowchart LR
 
 The RT-DETR internals (what is frozen and what is fine-tuned) and the role of each module are in [`docs/architecture/`](docs/architecture/README.md).
 
+## Results
+
+All numbers are on the frozen **test split: 95 frames from 7 unseen videos, labeled by hand from scratch** ([ADR 0003](docs/decisions/0003-label-test-from-scratch.md)). The final model is the run with the best validation mAP among the six ablation runs (selected without looking at test): RT-DETR with the backbone unfrozen, seed 2. Generated with the commands in [Training and evaluation](#training-and-evaluation); the full record of runs is in [`reports/experiments/`](reports/experiments/summary.md).
+
+### Fine-tuned vs. zero-shot
+
+| Model | mAP@[.5:.95] | AP50 | AP75 | Latency (RTX 4070 SUPER) |
+|---|--:|--:|--:|--:|
+| **RT-DETR fine-tuned** (final model) | **0.649** | **0.930** | **0.794** | **19.5 ms · 51 FPS** |
+| RT-DETR, mean (range) over 3 seeds | 0.648 (0.645–0.649) | 0.934 (0.930–0.938) | 0.783 (0.777–0.794) | |
+| Grounding DINO zero-shot | 0.481 | 0.723 | 0.588 | 471 ms · 2 FPS |
+
+![Test accuracy: fine-tuned vs. zero-shot](reports/figures/model_comparison.png)
+![Inference latency](reports/figures/latency.png)
+
+RT-DETR finds 93% of the billboards at IoU 0.5 and runs ~24× faster, which makes real-time video processing possible; Grounding DINO is only practical offline, as the labeling stage. At its calibrated threshold (0.15), the final model reaches precision 0.85 and recall 0.93 on val.
+
+### How much labeling is needed
+
+![Learning curve](reports/figures/learning_curve.png)
+
+RT-DETR beats the zero-shot baseline with only 66 reviewed training images, and plateaus from ~200: more frames of the same videos stop helping ([table](reports/experiments/summary.md)).
+
+### Frozen vs. unfrozen backbone
+
+| Backbone (3 seeds) | mAP | AP50 | AP75 |
+|---|--:|--:|--:|
+| Frozen | 0.643 (0.637–0.653) | 0.929 (0.925–0.933) | 0.784 (0.778–0.794) |
+| Unfrozen (10× lower LR) | 0.648 (0.645–0.649) | 0.934 (0.930–0.938) | 0.783 (0.777–0.794) |
+
+![Validation mAP per epoch](reports/experiments/training_curves.png)
+
+The difference (+0.005 mAP) is smaller than the seed-to-seed spread of the frozen backbone: unfreezing gives no measurable accuracy gain, only more stable runs. Validation mAP usually peaks well before epoch 50.
+
+### Where mAP is lost
+
+![AP per IoU threshold](reports/figures/ap_per_iou.png)
+
+Detection is near its ceiling at IoU 0.5, but AP collapses above IoU 0.8 on test, for **both** models, while RT-DETR holds up on val. Train and val labels are mostly corrected Grounding DINO boxes, which are 6–9% narrower and shorter than the hand-drawn test boxes, with every edge inside; the fine-tuned model inherits that style (width and height ratios of 0.95 and 0.93 to the test boxes, vs. 0.94 and 0.91 for the pre-labels). Pre-labeling speeds up annotation but transfers the zero-shot model's localization bias, which mAP@[.5:.95] penalizes and AP50 barely sees ([diagnostics](reports/metrics/localization_test.md)).
+
+### Examples
+
+Green boxes are the ground truth, red boxes are predictions with their score. The bottom band of each frame (a camera overlay) is cropped.
+
+**Several billboards:** RT-DETR finds all three; Grounding DINO adds a false positive on a shop sign.
+![Several billboards](reports/figures/examples/multiple_billboards.jpg)
+
+**A distant billboard:** the typical case.
+![Distant billboard](reports/figures/examples/distant_billboard.jpg)
+
+**A shared failure:** both models mistake a glass building facade for a billboard.
+![False positive on a facade](reports/figures/examples/false_positive_facade.jpg)
+
+### What the model attends to
+
+![Attention maps](reports/figures/examples/attention_maps.jpg)
+
+Left to right: the detection, the encoder (AIFI) self-attention from the token under the box center, and the decoder's deformable sampling points sized by weight. The decoder samples on the billboard and its edges. Measured over the test set, the encoder token puts **1.63×** (median) more attention on the *other* billboards of the frame than their area alone would give, above chance in 88% of 49 detections: global self-attention relates similar regions across the image ([`scripts/analyze_attention.py`](scripts/analyze_attention.py)).
+
 ## Project structure
 
 ```

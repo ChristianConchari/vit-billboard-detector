@@ -1,0 +1,16 @@
+{
+  "checkpoint": "checkpoints/rtdetr/rtdetr-20261005-004038/best",
+  "split": "test",
+  "score_threshold": 0.15024496614933014,
+  "detections": 49,
+  "other_billboards": {
+    "median": 1.6281916035546198,
+    "mean": 1.7580793671445532,
+    "above_chance": 0.8775510204081632
+  },
+  "own_billboard": {
+    "median": 2.018124196264479,
+    "mean": 2.2467404105937017,
+    "above_chance": 0.9387755102040817
+  }
+}

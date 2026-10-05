@@ -51,3 +51,4 @@ reports/figures/attention_*/
 # Demo inference outputs
 outputs/
 reports/runs/*/figures/
+reports/runs/

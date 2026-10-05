@@ -55,8 +55,7 @@ def main() -> None:
         checkpoint=config["model"]["checkpoint"],
         prompts=config["prompts"],
         box_threshold=config["thresholds"]["box_threshold"],
-        text_threshold=config["thresholds"]["text_threshold"],
-        nms_iou_threshold=config["thresholds"].get("nms_iou_threshold", 0.5),
+        nms_iou_threshold=config["thresholds"]["nms_iou_threshold"],
     )
     builder = CocoDatasetBuilder(category_names=[CATEGORY_NAME])
 

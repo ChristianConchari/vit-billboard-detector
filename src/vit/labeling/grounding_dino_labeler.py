@@ -44,13 +44,11 @@ class GroundingDinoAutoLabeler:
         checkpoint: str = "IDEA-Research/grounding-dino-tiny",
         prompts: list[str] | None = None,
         box_threshold: float = 0.35,
-        text_threshold: float = 0.25,
         nms_iou_threshold: float = 0.5,
         device: str | int | None = None,
     ):
         self.prompts = prompts or ["billboard"]
         self.box_threshold = box_threshold
-        self.text_threshold = text_threshold
         self.nms_iou_threshold = nms_iou_threshold
 
         logger.info("Loading Grounding DINO checkpoint: %s", checkpoint)

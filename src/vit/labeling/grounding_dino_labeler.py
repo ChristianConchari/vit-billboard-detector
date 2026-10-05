@@ -45,7 +45,7 @@ class GroundingDinoAutoLabeler:
         prompts: list[str] | None = None,
         box_threshold: float = 0.35,
         nms_iou_threshold: float = 0.5,
-        device: str | int | None = None,
+        device: str | int | torch.device | None = None,
     ):
         self.prompts = prompts or ["billboard"]
         self.box_threshold = box_threshold

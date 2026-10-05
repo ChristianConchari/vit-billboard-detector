@@ -12,12 +12,12 @@ import argparse
 import json
 from pathlib import Path
 
-import torch
 from PIL import Image
 
 from vit.eval.latency import measure_latency
 from vit.inference.factory import build_grounding_dino_detector, build_rtdetr_detector
 from vit.utils.config import load_config
+from vit.utils.device import device_name, select_device
 from vit.utils.logging import get_logger
 
 logger = get_logger(__name__, log_file="evaluation.log")
@@ -62,7 +62,7 @@ def main() -> None:
             gdino_config, gdino_config["evaluation"]["box_threshold"]
         ),
     }
-    device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"
+    device = device_name(select_device())
 
     results = {"device": device, "image_size": [images[0].width, images[0].height]}
     for name, detector in detectors.items():

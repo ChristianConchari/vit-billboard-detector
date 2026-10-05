@@ -8,7 +8,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-import torch
 from PIL import Image
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
 
@@ -21,6 +20,7 @@ from vit.eval.visualization import (
     side_by_side,
 )
 from vit.inference.detection import BoxProposal, Detector
+from vit.utils.device import select_device
 
 
 def render_detector_comparison(
@@ -68,7 +68,7 @@ def render_attention_maps(
 
     Returns the number of figures written.
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = select_device()
     model = AutoModelForObjectDetection.from_pretrained(
         checkpoint, attn_implementation="eager"
     )

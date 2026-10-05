@@ -23,6 +23,7 @@ from transformers import AutoImageProcessor, AutoModelForObjectDetection
 from vit.eval.attention_maps import attention_lift, explain_detections
 from vit.eval.threshold import load_calibrated_threshold
 from vit.utils.config import load_config
+from vit.utils.device import select_device
 from vit.utils.logging import get_logger
 
 logger = get_logger(__name__, log_file="evaluation.log")
@@ -62,7 +63,7 @@ def main() -> None:
     if threshold is None:
         threshold = config["inference"]["score_threshold"]
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = select_device()
     model = AutoModelForObjectDetection.from_pretrained(
         args.checkpoint, attn_implementation="eager"
     ).to(device)

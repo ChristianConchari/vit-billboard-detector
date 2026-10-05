@@ -17,6 +17,7 @@ from vit.eval.coco_evaluation import evaluate_detector
 from vit.inference.rtdetr_detector import RtDetrDetector
 from vit.models.rtdetr import freeze_backbone, init_classification_bias, load_rtdetr
 from vit.transforms.augmentations import build_train_augmentations
+from vit.utils.device import select_device
 from vit.utils.logging import get_logger
 from vit.utils.tracking import prefixed, require_active_run
 
@@ -31,7 +32,7 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
     require_active_run()
     data_cfg, train_cfg = config["data"], config["training"]
     seed_everything(train_cfg["seed"])
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = select_device()
 
     model, image_processor = load_rtdetr(
         config["model"]["pretrained_checkpoint"], config["model"]["label_names"]

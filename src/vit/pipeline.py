@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Any
 
 import mlflow
-import torch
 from PIL import Image
 
 from vit.data.dataset_split import (
@@ -32,6 +31,7 @@ from vit.eval.results import results_markdown
 from vit.eval.threshold import CALIBRATION_FILE, calibrate_threshold
 from vit.inference.factory import build_grounding_dino_detector, build_rtdetr_detector
 from vit.train.trainer import new_run_name, train_rtdetr
+from vit.utils.device import device_name, select_device
 from vit.utils.logging import get_logger
 from vit.utils.tracking import file_digest, flatten, git_tags, prefixed, start_run
 
@@ -264,7 +264,7 @@ def _benchmark(
         for info in test_split["images"]
     ]
     return {
-        "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+        "device": device_name(select_device()),
         "models": {
             name: measure_latency(
                 detector, images, latency_cfg["warmup"], latency_cfg["repeats"]

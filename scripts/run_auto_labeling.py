@@ -15,6 +15,7 @@ from PIL import Image
 from vit.labeling.coco_writer import CocoDatasetBuilder
 from vit.labeling.grounding_dino_labeler import GroundingDinoAutoLabeler
 from vit.utils.config import load_config
+from vit.utils.device import select_device
 from vit.utils.logging import get_logger
 
 logger = get_logger(__name__, log_file="labeling.log")
@@ -60,6 +61,7 @@ def main() -> None:
         prompts=config["prompts"],
         box_threshold=config["thresholds"]["box_threshold"],
         nms_iou_threshold=config["thresholds"]["nms_iou_threshold"],
+        device=select_device(),
     )
     builder = CocoDatasetBuilder(category_names=[CATEGORY_NAME])
 

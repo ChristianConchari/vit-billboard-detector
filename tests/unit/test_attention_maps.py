@@ -3,7 +3,12 @@ import pytest
 import torch
 from PIL import Image
 
-from vit.eval.attention_maps import DetectionAttention, deformable_sampling, token_at
+from vit.eval.attention_maps import (
+    DetectionAttention,
+    attention_lift,
+    deformable_sampling,
+    token_at,
+)
 from vit.eval.visualization import (
     TITLE_BAR_HEIGHT,
     draw_encoder_attention,
@@ -64,3 +69,23 @@ def test_attention_panels_keep_image_size_plus_title_bar():
 
     for draw in (draw_encoder_attention, draw_sampling_points):
         assert draw(image, _detection(), "t").size == (200, 100 + TITLE_BAR_HEIGHT)
+
+
+def test_uniform_attention_has_no_lift():
+    lift = attention_lift(np.ones((4, 4)), [(0, 0, 50, 50)], image_size=(100, 100))
+
+    assert lift == pytest.approx(1.0)
+
+
+def test_attention_concentrated_on_a_box_lifts_above_chance():
+    attention = np.zeros((4, 4))
+    attention[0, 0] = 1.0
+
+    assert attention_lift(attention, [(0, 0, 25, 25)], (100, 100)) == pytest.approx(
+        16.0
+    )
+    assert attention_lift(attention, [(50, 50, 100, 100)], (100, 100)) == 0.0
+
+
+def test_boxes_covering_no_token_give_no_lift():
+    assert attention_lift(np.ones((4, 4)), [(0, 0, 1, 1)], (100, 100)) is None

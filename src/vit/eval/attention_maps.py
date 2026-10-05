@@ -128,3 +128,31 @@ def explain_detections(
             )
         )
     return detections
+
+
+def attention_lift(
+    encoder_attention: np.ndarray,
+    boxes_xyxy: list[tuple[float, float, float, float]],
+    image_size: tuple[int, int],
+) -> float | None:
+    """Share of attention inside `boxes_xyxy` divided by the share of area they cover.
+
+    1.0 means no preference (attention spread like the area); above 1.0 the token
+    attends to those boxes more than chance. None when the boxes cover no tokens.
+    """
+    width, height = image_size
+    grid_height, grid_width = encoder_attention.shape
+    xs = (np.arange(grid_width) + 0.5) * width / grid_width
+    ys = (np.arange(grid_height) + 0.5) * height / grid_height
+    inside = np.zeros(encoder_attention.shape, dtype=bool)
+    for x_min, y_min, x_max, y_max in boxes_xyxy:
+        inside |= (
+            (xs[None, :] >= x_min)
+            & (xs[None, :] <= x_max)
+            & (ys[:, None] >= y_min)
+            & (ys[:, None] <= y_max)
+        )
+    if not inside.any():
+        return None
+    attention = encoder_attention / encoder_attention.sum()
+    return float(attention[inside].sum() / inside.mean())

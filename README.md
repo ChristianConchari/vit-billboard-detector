@@ -258,6 +258,14 @@ python scripts/analyze_localization.py \
 
 Writes `reports/metrics/localization_test.md` with AP at every IoU threshold (0.50–0.95) on test and val, and the systematic edge bias of each model's boxes against the test ground truth, next to the bias of the Grounding DINO pre-labels. It shows where mAP is lost: detection at IoU 0.5 is near its ceiling, while boxes trained on corrected pre-labels inherit Grounding DINO's tighter style and diverge from the hand-drawn test boxes at high IoU.
 
+### Attention analysis
+
+```bash
+python scripts/analyze_attention.py --checkpoint checkpoints/rtdetr/<run>/best
+```
+
+Writes `reports/metrics/attention_test.json`. For each detection matched to a billboard in frames with two or more billboards, it compares the encoder attention of the token under the box center that falls on the *other* billboards with the share of the image they cover (1.0 = chance), and the same for its own billboard.
+
 ### Experiment tracking
 
 MLflow uses a local SQLite backend (`mlflow.db`, with artifacts under `mlruns/`; neither is tracked by git). Browse runs with:

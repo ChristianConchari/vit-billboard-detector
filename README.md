@@ -171,7 +171,7 @@ It imports the export, splits it by video, fine-tunes RT-DETR, calibrates its sc
 - `summary.json`: the same numbers, machine-readable;
 - `figures/`: prediction comparisons and attention maps (not tracked by git; publish only a few hand-picked frames).
 
-Without `--export-path` it reuses the dataset already imported. `--checkpoint checkpoints/rtdetr/<run>/best` skips training and evaluates that model. `--skip-figures` saves a few minutes. Settings live in `configs/pipeline.yaml` and `configs/model/*.yaml`. The run stops early if a split has no reviewed images.
+Without `--export-path` it reuses the dataset already imported. `--checkpoint checkpoints/rtdetr/<run>/best` skips training and evaluates that model. `--skip-figures` saves a few minutes. `--set KEY=VALUE` (repeatable) overrides any RT-DETR config value for that run, e.g. `--set training.freeze_backbone=false --set training.seed=1`; the effective config is what gets logged to MLflow. Settings live in `configs/pipeline.yaml` and `configs/model/*.yaml`. The run stops early if a split has no reviewed images.
 
 ### Step by step
 

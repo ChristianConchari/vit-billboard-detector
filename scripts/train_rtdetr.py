@@ -9,14 +9,21 @@ import argparse
 import mlflow
 
 from vit.train.trainer import new_run_name, train_rtdetr
-from vit.utils.config import load_config
+from vit.utils.config import apply_overrides, load_config
 from vit.utils.tracking import flatten, git_tags, start_run
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fine-tune RT-DETR")
     parser.add_argument("--config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--epochs", type=int, help="Overrides training.epochs from the config")
+    parser.add_argument(
+        "--set",
+        dest="overrides",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override a config value, e.g. training.epochs=3 (repeatable)",
+    )
     parser.add_argument("--note", help="MLflow tag to group related runs")
     return parser.parse_args()
 
@@ -24,8 +31,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
-    if args.epochs is not None:
-        config["training"]["epochs"] = args.epochs
+    apply_overrides(config, args.overrides)
     run_name = new_run_name()
     with start_run(config["mlflow"], run_name):
         mlflow.set_tags({**git_tags(), "stage": "train"})

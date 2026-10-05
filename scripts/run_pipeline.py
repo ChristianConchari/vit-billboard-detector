@@ -5,13 +5,14 @@ Usage:
     python scripts/run_pipeline.py                                    # reuse the imported dataset
     python scripts/run_pipeline.py --checkpoint checkpoints/rtdetr/<run>/best  # skip training
     python scripts/run_pipeline.py --export-path <export>.zip --note learning-curve
+    python scripts/run_pipeline.py --set training.freeze_backbone=false --note ablation
 """
 
 import argparse
 from pathlib import Path
 
 from vit.pipeline import PipelineConfigs, run_pipeline
-from vit.utils.config import load_config
+from vit.utils.config import apply_overrides, load_config
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,7 +26,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
     parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
     parser.add_argument(
-        "--epochs", type=int, help="Overrides training.epochs from the RT-DETR config"
+        "--set",
+        dest="overrides",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override an RT-DETR config value, e.g. training.freeze_backbone=false (repeatable)",
     )
     parser.add_argument("--note", help='MLflow tag to group related runs, e.g. "learning-curve"')
     return parser.parse_args()
@@ -38,8 +44,7 @@ def main() -> None:
         rtdetr=load_config(args.rtdetr_config),
         grounding_dino=load_config(args.grounding_dino_config),
     )
-    if args.epochs is not None:
-        configs.rtdetr["training"]["epochs"] = args.epochs
+    apply_overrides(configs.rtdetr, args.overrides)
 
     run_pipeline(
         configs,

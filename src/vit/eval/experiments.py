@@ -11,13 +11,17 @@ from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 from mlflow.tracking import MlflowClient
 
-from vit.eval.learning_curve import GRID_COLOR, SURFACE_COLOR, TEXT_PRIMARY, TEXT_SECONDARY
+from vit.eval.chart_style import (
+    RTDETR_COLOR,
+    UNFROZEN_COLOR,
+    add_legend,
+    new_figure,
+    save,
+    style_axes,
+)
 
-FROZEN_COLOR = "#2a78d6"
-UNFROZEN_COLOR = "#1baf7a"
 TEST_METRICS = ("mAP", "AP50", "AP75")
 
 
@@ -174,12 +178,11 @@ def summary_markdown(records: list[RunRecord]) -> str:
 def plot_training_curves(records: list[RunRecord], output_path: Path) -> None:
     """Validation mAP per epoch for every run at the largest training-set size."""
     final_size = max(r.train_images for r in records)
-    figure, axes = plt.subplots(figsize=(8, 4.5), dpi=150, facecolor=SURFACE_COLOR)
-    axes.set_facecolor(SURFACE_COLOR)
+    figure, axes = new_figure()
 
     plotted = [r for r in records if r.train_images == final_size]
     for frozen, color, label in (
-        (True, FROZEN_COLOR, "frozen"),
+        (True, RTDETR_COLOR, "frozen"),
         (False, UNFROZEN_COLOR, "unfrozen"),
     ):
         runs = [r for r in plotted if r.freeze_backbone == frozen]
@@ -201,23 +204,11 @@ def plot_training_curves(records: list[RunRecord], output_path: Path) -> None:
 
     values = [v for r in plotted for v in r.val_map_by_epoch]
     axes.set_ylim(max(0.0, min(values) - 0.05), min(1.0, max(values) + 0.05))
-    axes.set_title(
+    style_axes(
+        axes,
         f"Validation mAP per epoch ({final_size} training images)",
-        loc="left",
-        color=TEXT_PRIMARY,
-        fontsize=12,
+        "Epoch",
+        "Val mAP (COCO 0.50:0.95)",
     )
-    axes.set_xlabel("Epoch", color=TEXT_SECONDARY)
-    axes.set_ylabel("Val mAP (COCO 0.50:0.95)", color=TEXT_SECONDARY)
-    axes.grid(axis="y", color=GRID_COLOR, linewidth=1)
-    axes.set_axisbelow(True)
-    axes.tick_params(colors=TEXT_SECONDARY, length=0)
-    for side in ("top", "right", "left"):
-        axes.spines[side].set_visible(False)
-    axes.spines["bottom"].set_color(GRID_COLOR)
-    axes.legend(loc="lower right", frameon=False, labelcolor=TEXT_PRIMARY, fontsize=9)
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    figure.tight_layout()
-    figure.savefig(output_path, facecolor=SURFACE_COLOR)
-    plt.close(figure)
+    add_legend(axes)
+    save(figure, output_path)

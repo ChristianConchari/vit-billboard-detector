@@ -11,15 +11,19 @@ from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 from mlflow.tracking import MlflowClient
 
-RTDETR_COLOR = "#2a78d6"
-ZERO_SHOT_COLOR = "#eb6834"
-SURFACE_COLOR = "#fcfcfb"
-TEXT_PRIMARY = "#0b0b0b"
-TEXT_SECONDARY = "#52514e"
-GRID_COLOR = "#e4e3df"
+from vit.eval.chart_style import (
+    RTDETR_COLOR,
+    SURFACE_COLOR,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    ZERO_SHOT_COLOR,
+    add_legend,
+    new_figure,
+    save,
+    style_axes,
+)
 
 
 @dataclass
@@ -88,9 +92,7 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
     sizes = [p.train_images for p in points]
     means = [p.mean_map for p in points]
 
-    figure, axes = plt.subplots(figsize=(8, 4.5), dpi=150, facecolor=SURFACE_COLOR)
-    axes.set_facecolor(SURFACE_COLOR)
-
+    figure, axes = new_figure()
     axes.axhline(zero_shot_map, color=ZERO_SHOT_COLOR, linewidth=2, solid_capstyle="round")
     axes.vlines(
         sizes,
@@ -134,8 +136,11 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
         fontsize=9,
     )
 
-    axes.set_title(
-        "Test mAP vs. reviewed training images", loc="left", color=TEXT_PRIMARY, fontsize=12, pad=16
+    style_axes(
+        axes,
+        "Test mAP vs. reviewed training images",
+        "Training images",
+        "Test mAP (COCO 0.50:0.95)",
     )
     if any(p.runs > 1 for p in points):
         axes.text(
@@ -146,21 +151,9 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
             color=TEXT_SECONDARY,
             fontsize=8,
         )
-    axes.set_xlabel("Training images", color=TEXT_SECONDARY)
-    axes.set_ylabel("Test mAP (COCO 0.50:0.95)", color=TEXT_SECONDARY)
     axes.set_ylim(0, 1)
-    axes.grid(axis="y", color=GRID_COLOR, linewidth=1)
-    axes.set_axisbelow(True)
-    axes.tick_params(colors=TEXT_SECONDARY, length=0)
-    for side in ("top", "right", "left"):
-        axes.spines[side].set_visible(False)
-    axes.spines["bottom"].set_color(GRID_COLOR)
-    axes.legend(loc="lower right", frameon=False, labelcolor=TEXT_PRIMARY, fontsize=9)
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    figure.tight_layout()
-    figure.savefig(output_path, facecolor=SURFACE_COLOR)
-    plt.close(figure)
+    add_legend(axes)
+    save(figure, output_path)
 
 
 def write_curve_table(points: list[CurvePoint], zero_shot_map: float, output_path: Path) -> None:

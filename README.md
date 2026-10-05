@@ -4,7 +4,7 @@
 
 Detection of **out-of-home (OOH) advertising billboards** in street-level video frames, with Transformer-based detectors. Final project for **Computer Vision III** (MIA-CEIA, FIUBA).
 
-**Technical report (in Spanish):** [`docs/informe_tecnico.pdf`](docs/informe_tecnico.pdf).
+**Technical report:** [`docs/informe_tecnico.pdf`](docs/informe_tecnico.pdf).
 
 The challenge is the data: 632 unlabeled frames and little time to annotate them. The project therefore works in two stages:
 

@@ -15,7 +15,51 @@ Two-stage pipeline designed around data scarcity:
 1. **Auto-labeling** — [Grounding DINO](https://github.com/IDEA-Research/GroundingDINO) (open-set, text-prompted detection) generates candidate bounding boxes on unlabeled images ("billboard", "advertising sign", "OOH ad"). Boxes are manually reviewed/corrected instead of labeled from scratch.
 2. **Fine-tuning** — [RT-DETR](https://github.com/lyuwenyu/RT-DETR) (COCO-pretrained) is fine-tuned on the resulting dataset. Chosen over vanilla DETR for faster convergence with limited data, given the lack of inductive bias in pure Transformer detectors.
 
-Evaluation compares **Grounding DINO zero-shot** vs. **RT-DETR fine-tuned** on the same held-out ground truth (mAP, AP50, AP75, AP by object size).
+Evaluation compares **Grounding DINO zero-shot** vs. **RT-DETR fine-tuned** on the same test videos, labeled by hand from scratch so neither model influenced the ground truth ([ADR 0003](docs/decisions/0003-label-test-from-scratch.md)). Metrics: COCO mAP@[.5:.95], AP50 and AP75, plus end-to-end latency. AP by object size is computed but not informative here: nearly every test box is large.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    raw["Raw video frames<br/>(632 images, 26 videos)"]
+
+    subgraph labeling["1 · Labeling"]
+        gdino["Grounding DINO<br/>zero-shot proposals"]
+        review["Label Studio<br/>human review"]
+        scratch["Test videos<br/>drawn from scratch"]
+    end
+
+    subgraph data["2 · Dataset"]
+        import["Import COCO export"]
+        split["Split by video<br/>(frozen assignment)"]
+    end
+
+    subgraph training["3 · Training"]
+        rtdetr["RT-DETR fine-tuning<br/>(COCO-pretrained)"]
+        calib["Best epoch + score<br/>threshold on val"]
+    end
+
+    subgraph evaluation["4 · Evaluation"]
+        eval["COCO metrics on test<br/>RT-DETR vs. Grounding DINO"]
+        diag["Latency, localization,<br/>attention maps"]
+    end
+
+    tracking[("MLflow<br/>runs, tags, artifacts")]
+    report["reports/<br/>results, figures"]
+    cli["billboard-detect<br/>images and video"]
+
+    raw --> gdino --> review
+    raw --> scratch
+    review --> import
+    scratch --> import
+    import --> split --> rtdetr --> calib --> eval --> diag --> report
+    calib --> cli
+    rtdetr -.-> tracking
+    eval -.-> tracking
+    diag -.-> tracking
+```
+
+The RT-DETR internals (what is frozen and what is fine-tuned) and the role of each module are in [`docs/architecture/`](docs/architecture/README.md).
 
 ## Project structure
 

@@ -58,11 +58,7 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
         model, image_processor, device, score_threshold=config["evaluation"]["score_threshold"]
     )
 
-    optimizer = torch.optim.AdamW(
-        [p for p in model.parameters() if p.requires_grad],
-        lr=train_cfg["learning_rate"],
-        weight_decay=train_cfg["weight_decay"],
-    )
+    optimizer = build_optimizer(model, train_cfg)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=train_cfg["epochs"] * len(train_loader)
     )
@@ -96,6 +92,29 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
     mlflow.log_param("train.best_checkpoint", str(best_dir))
     logger.info("Best val mAP %.4f, checkpoint saved to %s", best_map, best_dir)
     return best_dir
+
+
+def build_optimizer(model: PreTrainedModel, train_cfg: dict[str, Any]) -> torch.optim.Optimizer:
+    """AdamW with a separate, lower learning rate for the (unfrozen) pretrained backbone.
+
+    Updating the backbone at the head's learning rate tends to wreck its
+    pretrained features, so it gets `backbone_learning_rate` instead.
+    """
+    backbone_ids = {id(p) for p in model.model.backbone.parameters()}
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    groups = [
+        {
+            "params": [p for p in trainable if id(p) not in backbone_ids],
+            "lr": train_cfg["learning_rate"],
+        },
+        {
+            "params": [p for p in trainable if id(p) in backbone_ids],
+            "lr": train_cfg["backbone_learning_rate"],
+        },
+    ]
+    return torch.optim.AdamW(
+        [group for group in groups if group["params"]], weight_decay=train_cfg["weight_decay"]
+    )
 
 
 def train_one_epoch(

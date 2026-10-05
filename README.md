@@ -4,6 +4,8 @@
 
 Detection of **out-of-home (OOH) advertising billboards** in street-level video frames, with Transformer-based detectors. Final project for **Computer Vision III** (MIA-CEIA, FIUBA).
 
+**Technical report (in Spanish):** [`docs/informe_tecnico.pdf`](docs/informe_tecnico.pdf).
+
 The challenge is the data: 632 unlabeled frames and little time to annotate them. The project therefore works in two stages:
 
 1. **Auto-labeling.** [Grounding DINO](https://arxiv.org/abs/2303.05499), an open-vocabulary detector, proposes boxes from text prompts ("billboard", "advertising sign", "ooh ad"). A human only reviews and corrects them.
@@ -157,6 +159,7 @@ reports/        results, figures and the exported experiment record
 
 ## Documentation
 
+- [Technical report](docs/informe_tecnico.pdf) (PDF, in Spanish): objective, architecture, implementation, evaluation, results and conclusions.
 - [Architecture](docs/architecture/README.md): system flow, RT-DETR internals, components.
 - [Design decisions](docs/decisions/): why the provided labels were discarded, why the split is by video, why the test set was labeled from scratch.
 - [Usage](docs/usage.md): the pipeline, analysis scripts, MLflow tracking, the demo.

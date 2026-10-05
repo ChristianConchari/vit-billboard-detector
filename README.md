@@ -21,33 +21,36 @@ Evaluation compares **Grounding DINO zero-shot** vs. **RT-DETR fine-tuned** on t
 
 ```
 .
-├── configs/                # env + model configuration (yaml)
-├── data/
-│   ├── raw/                 # original, unlabeled images
-│   ├── interim/              # intermediate/preprocessed data
-│   ├── processed/            # final datasets ready for training
+├── configs/
+│   ├── pipeline.yaml          # end-to-end run: data paths, split, calibration, latency, figures
+│   └── model/                 # rtdetr.yaml (training/eval), grounding_dino.yaml (auto-labeling)
+├── data/                      # not tracked by git
+│   ├── raw/                   # full image pool (input to auto-labeling and the split)
+│   ├── interim/               # extracted Label Studio exports
+│   ├── processed/             # reviewed images used for training/evaluation
 │   └── annotations/
-│       ├── auto/              # Grounding DINO auto-generated labels
-│       └── reviewed/          # manually corrected, final COCO-format labels
+│       ├── auto/              # Grounding DINO pre-labels (COCO)
+│       └── reviewed/          # reviewed COCO labels, train/val/test splits, split_assignment.json
 ├── src/
-│   ├── interfaces/cli/       # CLI entry points
+│   ├── interfaces/cli/        # billboard-detect: end-user CLI for images and videos
 │   └── vit/
-│       ├── data/              # dataset loaders
-│       ├── labeling/          # auto-labeling pipeline (Grounding DINO)
-│       ├── models/            # model definitions / wrappers
-│       ├── train/             # training loop
-│       ├── eval/               # metrics (mAP, AP50, AP75...)
-│       ├── inference/          # inference scripts
-│       ├── transforms/         # augmentations, preprocessing
-│       └── utils/              # logging, config, shared helpers
-├── notebooks/               # exploration notebooks
-├── scripts/                 # standalone automation scripts
-├── experiments/             # experiment configs/outputs
-├── reports/figures/         # generated plots/visualizations
-├── checkpoints/             # trained model weights
-├── logs/                    # local run logs
-├── docs/                    # technical documentation
-└── tests/                   # unit / integration / e2e tests
+│       ├── data/              # Label Studio import, split by video, PyTorch dataset
+│       ├── labeling/          # Grounding DINO auto-labeling, Label Studio sync
+│       ├── models/            # RT-DETR loading, backbone freezing, head init
+│       ├── train/             # fine-tuning loop
+│       ├── eval/              # COCO metrics, calibration, latency, localization, figures, learning curve
+│       ├── inference/         # Detector protocol, RT-DETR adapter, image/video runner
+│       ├── transforms/        # box-aware augmentations
+│       ├── utils/             # config, logging, MLflow tracking
+│       └── pipeline.py        # one-command run, from export to report
+├── scripts/                   # thin CLIs over src/vit (pipeline, training, evaluation, analysis)
+├── tests/
+│   ├── unit/                  # fast tests per module
+│   └── integration/           # end-to-end runs with a tiny RT-DETR, no downloads
+├── docs/decisions/            # architecture decision records (ADRs)
+├── reports/                   # metrics, run reports and figures (generated)
+├── checkpoints/               # fine-tuned weights (not tracked by git)
+└── logs/                      # run logs (not tracked by git)
 ```
 
 ## Tooling
@@ -74,7 +77,7 @@ Dependencies are pinned in `requirements.txt` to the versions the pipeline was v
 python -m venv .venv
 source .venv/bin/activate
 pip install -e . -r requirements.txt
-pytest -q   # unit tests, no model downloads or GPU needed
+pytest -q   # unit + integration tests, no model downloads or GPU needed (~25 s)
 ```
 
 Run every command from the repository root: config and data paths are relative to it.
@@ -90,7 +93,7 @@ ruff check src scripts tests
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests, with two jobs:
 - **lint:** `ruff check` and `ruff format --check`;
-- **test:** installs the pinned dependencies (CPU-only PyTorch, no GPU needed) and runs `pytest`.
+- **test:** installs the pinned dependencies (CPU-only PyTorch, no GPU needed) and runs `pytest`: unit tests per module, plus integration tests that run the whole pipeline and the `billboard-detect` CLI end to end with a tiny randomly initialized RT-DETR.
 
 ## Design decisions
 
@@ -201,6 +204,15 @@ The same steps can be run one at a time:
    python scripts/benchmark_latency.py --checkpoint checkpoints/rtdetr/<run>/best
    ```
    Results go to `reports/metrics/latency_<split>.json`. The Grounding DINO pipeline runs one forward pass per text prompt, so its latency grows with the number of prompts.
+
+### Localization diagnostics
+
+```bash
+python scripts/analyze_localization.py \
+    --checkpoint checkpoints/rtdetr/<run-a>/best --checkpoint checkpoints/rtdetr/<run-b>/best
+```
+
+Writes `reports/metrics/localization_test.md` with AP at every IoU threshold (0.50–0.95) on test and val, and the systematic edge bias of each model's boxes against the test ground truth, next to the bias of the Grounding DINO pre-labels. It shows where mAP is lost: detection at IoU 0.5 is near its ceiling, while boxes trained on corrected pre-labels inherit Grounding DINO's tighter style and diverge from the hand-drawn test boxes at high IoU.
 
 ### Experiment tracking
 

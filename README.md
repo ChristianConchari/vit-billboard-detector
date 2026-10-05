@@ -20,19 +20,19 @@ Evaluated on **95 frames from 7 videos never seen in training**, labeled by hand
 | **RT-DETR fine-tuned** | **0.649** | **0.930** | **0.794** | **51 FPS** (19.5 ms) |
 | Grounding DINO zero-shot | 0.481 | 0.723 | 0.588 | 2 FPS (471 ms) |
 
-- **Fine-tuning wins on both accuracy and speed.** RT-DETR finds 93% of the billboards (AP50) and runs 24× faster, fast enough for real-time video. Grounding DINO is useful only offline, to pre-label data. Over 3 training seeds, RT-DETR scores 0.648 mAP (range 0.645–0.649).
+- **Fine-tuning wins on both accuracy and speed.** RT-DETR reaches 0.930 AP50 against 0.723 and runs at 51 FPS, fast enough for real-time video. Grounding DINO, run through the Hugging Face pipeline with one pass per prompt, is 24× slower with three prompts (about 8× with one) and is useful only offline, to pre-label data. Over 3 training seeds, RT-DETR scores 0.648 mAP (range 0.645–0.649).
 
   ![Test accuracy: fine-tuned vs. zero-shot](reports/figures/model_comparison.png)
 
-- **About 200 labeled images are enough.** RT-DETR already beats the zero-shot model with 66 training images and stops improving after ~200.
+- **More frames from the same videos stop helping after ~200 images.** RT-DETR already beats the zero-shot model with 66 training images. All images come from the same 12 training videos, so this measures redundancy between frames, not how many different scenes would be needed.
 
   ![Learning curve](reports/figures/learning_curve.png)
 
-- **The remaining error is box tightness, not detection.** Both models detect almost every billboard, but their boxes are 5–9% smaller than the hand-drawn ones. RT-DETR learned this style from the Grounding DINO pre-labels it was trained on. This lowers mAP, which demands very tight boxes, while AP50 barely changes.
+- **The remaining error looks like box tightness, not detection.** RT-DETR's boxes are 5–7% smaller than the hand-drawn test boxes, the same bias as the Grounding DINO pre-labels (6–9%). This is consistent with RT-DETR learning the pre-label style, since about half of its training boxes are lightly corrected pre-labels; relabeling a sample by hand would confirm it. The bias lowers mAP, which demands very tight boxes, while AP50 barely changes.
 
   ![AP per IoU threshold](reports/figures/ap_per_iou.png)
 
-- **Unfreezing the ResNet-50 backbone does not help.** It changes mAP by less than the variation between seeds ([training curves](reports/experiments/training_curves.png)).
+- **Unfreezing the ResNet-50 backbone makes no measurable difference.** It changes mAP by less than the variation between seeds ([training curves](reports/experiments/training_curves.png)).
 
 ### Examples
 
@@ -41,14 +41,14 @@ Green: ground truth. Red: predictions with their confidence. Left: RT-DETR; righ
 | | |
 |---|---|
 | Several billboards: RT-DETR finds all three; Grounding DINO also marks a shop sign. | ![Several billboards](reports/figures/examples/multiple_billboards.jpg) |
-| A distant billboard, the typical case. | ![Distant billboard](reports/figures/examples/distant_billboard.jpg) |
+| A single billboard seen from below: both models find it, RT-DETR with higher confidence. | ![Distant billboard](reports/figures/examples/distant_billboard.jpg) |
 | A shared mistake: a glass facade taken for a billboard. | ![False positive on a facade](reports/figures/examples/false_positive_facade.jpg) |
 
 ### What the Transformer looks at
 
 ![Attention maps](reports/figures/examples/attention_maps.jpg)
 
-Left to right: a detection, the **encoder self-attention** from the token at the center of the billboard, and the **decoder's deformable attention**, which reads only a few points per object (dot size = weight). The decoder focuses on the billboard and its edges. Measured over the test set, the encoder pays 1.6× more attention to the *other* billboards in the frame than chance would give: self-attention links similar regions across the whole image.
+Left to right: a detection, the **encoder self-attention** from the token at the center of the billboard, and the **decoder's deformable attention**, which reads only a few points per object (dot size = weight). The decoder focuses on the billboard and its edges. Measured over the test set, the encoder pays 1.6× more attention to the *other* billboards in the frame than their share of the image would give, a sign that self-attention associates similar regions across the frame.
 
 Full numbers: [`reports/experiments/summary.md`](reports/experiments/summary.md) (all tracked runs) and [`reports/metrics/`](reports/metrics/) (localization and attention analysis).
 

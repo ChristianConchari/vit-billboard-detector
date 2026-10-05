@@ -4,7 +4,13 @@ import pytest
 from PIL import Image
 
 from vit.inference.detection import BoxProposal
-from vit.inference.media import detect_in_images, detect_in_video, is_video, list_images
+from vit.inference.media import (
+    UnreadableVideoError,
+    detect_in_images,
+    detect_in_video,
+    is_video,
+    list_images,
+)
 
 
 class FixedDetector:
@@ -70,5 +76,5 @@ def test_detect_in_video_rejects_unreadable_files(tmp_path):
     broken = tmp_path / "broken.mp4"
     broken.write_text("not a video")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(UnreadableVideoError):
         detect_in_video(FixedDetector(), broken, tmp_path / "out")

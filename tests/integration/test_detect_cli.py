@@ -74,3 +74,14 @@ def test_detect_fails_cleanly_on_a_missing_source(tmp_path, tiny_checkpoint):
     assert result.returncode != 0
     assert "Source not found" in result.stderr
     assert "Traceback" not in result.stderr
+
+
+def test_detect_fails_cleanly_on_an_unreadable_video(tmp_path, tiny_checkpoint):
+    broken = tmp_path / "broken.mp4"
+    broken.write_text("not a video")
+
+    result = _detect(str(broken), "--checkpoint", str(tiny_checkpoint))
+
+    assert result.returncode != 0
+    assert "Cannot open video" in result.stderr
+    assert "Traceback" not in result.stderr

@@ -14,7 +14,13 @@ from pathlib import Path
 
 from vit.eval.threshold import load_calibrated_threshold
 from vit.inference.factory import build_rtdetr_detector
-from vit.inference.media import detect_in_images, detect_in_video, is_video, list_images
+from vit.inference.media import (
+    UnreadableVideoError,
+    detect_in_images,
+    detect_in_video,
+    is_video,
+    list_images,
+)
 from vit.utils.config import load_config
 from vit.utils.logging import get_logger
 
@@ -76,9 +82,12 @@ def main() -> None:
 
     start = time.perf_counter()
     if is_video(args.source):
-        records = detect_in_video(
-            detector, args.source, args.output_dir, args.overlay_fraction
-        )
+        try:
+            records = detect_in_video(
+                detector, args.source, args.output_dir, args.overlay_fraction
+            )
+        except UnreadableVideoError as error:
+            raise SystemExit(str(error)) from None
     else:
         images = list_images(args.source)
         if not images:

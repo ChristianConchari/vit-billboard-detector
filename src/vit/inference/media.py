@@ -14,6 +14,11 @@ from vit.inference.detection import BoxProposal, Detector
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
 
+
+class UnreadableVideoError(ValueError):
+    """The video file exists but OpenCV cannot decode it."""
+
+
 DetectionRecord = dict[str, Any]
 
 
@@ -51,7 +56,7 @@ def detect_in_video(
     output_dir.mkdir(parents=True, exist_ok=True)
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
-        raise ValueError(f"Cannot open video: {video_path}")
+        raise UnreadableVideoError(f"Cannot open video: {video_path}")
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
 
     writer = None

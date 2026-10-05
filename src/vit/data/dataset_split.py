@@ -74,7 +74,7 @@ def load_or_build_assignment(
     seed: int = 42,
     rebuild: bool = False,
 ) -> dict[str, str]:
-    """Reuse the saved video assignment, or build it from the full image pool and save it."""
+    """Reuse the saved video assignment, or build it from the full pool and save it."""
     if assignment_path.exists() and not rebuild:
         return json.loads(assignment_path.read_text())
 
@@ -103,7 +103,8 @@ def split_coco_by_video(
 
     if unassigned:
         raise ValueError(
-            f"{len(unassigned)} image(s) belong to videos missing from the split assignment "
+            f"{len(unassigned)} image(s) belong to videos missing from the split "
+            "assignment "
             f"(rebuild it from the full image pool), e.g. {unassigned[:3]}"
         )
 
@@ -124,7 +125,9 @@ def write_splits(splits: dict[str, dict[str, Any]], paths: dict[str, Path]) -> N
         paths[name].write_text(json.dumps(subset, indent=2))
 
 
-def exclude_split(coco: dict[str, Any], assignment: dict[str, str], split: str) -> dict[str, Any]:
+def exclude_split(
+    coco: dict[str, Any], assignment: dict[str, str], split: str
+) -> dict[str, Any]:
     """Drop the images (and their annotations) whose video is assigned to `split`."""
     kept_ids = {
         image["id"]
@@ -135,7 +138,7 @@ def exclude_split(coco: dict[str, Any], assignment: dict[str, str], split: str) 
 
 
 def subset_by_file_names(coco: dict[str, Any], file_names: list[str]) -> dict[str, Any]:
-    """Keep only the named images (and their annotations); unknown names are an error."""
+    """Keep only the named images and their annotations; unknown names raise."""
     ids_by_name = {image["file_name"]: image["id"] for image in coco["images"]}
     missing = [name for name in file_names if name not in ids_by_name]
     if missing:
@@ -154,7 +157,10 @@ def split_fingerprint(coco: dict[str, Any]) -> str:
     boxes: dict[str, list] = defaultdict(list)
     for annotation in coco["annotations"]:
         boxes[file_names[annotation["image_id"]]].append(
-            [category_names[annotation["category_id"]], [round(v, 2) for v in annotation["bbox"]]]
+            [
+                category_names[annotation["category_id"]],
+                [round(v, 2) for v in annotation["bbox"]],
+            ]
         )
     canonical = sorted((name, sorted(boxes[name])) for name in file_names.values())
     return hashlib.sha256(json.dumps(canonical).encode()).hexdigest()[:16]

@@ -23,12 +23,16 @@ GRID_COLOR = "#e4e3df"
 
 
 def new_figure(width: float = 8, height: float = 4.5) -> tuple[Figure, Axes]:
-    figure, axes = plt.subplots(figsize=(width, height), dpi=150, facecolor=SURFACE_COLOR)
+    figure, axes = plt.subplots(
+        figsize=(width, height), dpi=150, facecolor=SURFACE_COLOR
+    )
     axes.set_facecolor(SURFACE_COLOR)
     return figure, axes
 
 
-def style_axes(axes: Axes, title: str, xlabel: str, ylabel: str, grid_axis: str = "y") -> None:
+def style_axes(
+    axes: Axes, title: str, xlabel: str, ylabel: str, grid_axis: str = "y"
+) -> None:
     axes.set_title(title, loc="left", color=TEXT_PRIMARY, fontsize=12, pad=16)
     axes.set_xlabel(xlabel, color=TEXT_SECONDARY)
     axes.set_ylabel(ylabel, color=TEXT_SECONDARY)
@@ -44,8 +48,18 @@ def add_legend(axes: Axes, location: str = "lower right") -> None:
     """Legend whose line samples drop the markers' surface ring, which would make solid
     lines look dashed at legend size."""
     handles, labels = axes.get_legend_handles_labels()
-    handles = [_ringless(handle) if isinstance(handle, Line2D) else handle for handle in handles]
-    axes.legend(handles, labels, loc=location, frameon=False, labelcolor=TEXT_PRIMARY, fontsize=9)
+    handles = [
+        _ringless(handle) if isinstance(handle, Line2D) else handle
+        for handle in handles
+    ]
+    axes.legend(
+        handles,
+        labels,
+        loc=location,
+        frameon=False,
+        labelcolor=TEXT_PRIMARY,
+        fontsize=9,
+    )
 
 
 def _ringless(line: Line2D) -> Line2D:

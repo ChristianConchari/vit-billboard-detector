@@ -5,7 +5,8 @@ on the same ground truth. Metrics are written to reports/metrics/ (quick checks;
 tracked results come from scripts/run_pipeline.py).
 
 Usage:
-    python scripts/evaluate_detector.py --model rtdetr --checkpoint checkpoints/rtdetr/<run>/best
+    python scripts/evaluate_detector.py --model rtdetr \
+        --checkpoint checkpoints/rtdetr/<run>/best
     python scripts/evaluate_detector.py --model grounding-dino
 """
 
@@ -23,14 +24,18 @@ logger = get_logger(__name__, log_file="evaluation.log")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Evaluate a detector with COCO metrics")
+    parser = argparse.ArgumentParser(
+        description="Evaluate a detector with COCO metrics"
+    )
     parser.add_argument("--model", choices=["rtdetr", "grounding-dino"], required=True)
     parser.add_argument(
         "--checkpoint", help="Fine-tuned RT-DETR checkpoint dir (required for rtdetr)"
     )
     parser.add_argument("--split", choices=["train", "val", "test"], default="test")
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
+    parser.add_argument(
+        "--grounding-dino-config", default="configs/model/grounding_dino.yaml"
+    )
     parser.add_argument("--output-dir", default="reports/metrics")
     return parser.parse_args()
 
@@ -55,7 +60,9 @@ def main() -> None:
     args = parse_args()
     rtdetr_config = load_config(args.rtdetr_config)
     data_config = rtdetr_config["data"]
-    ground_truth = json.loads(Path(data_config[f"{args.split}_annotations"]).read_text())
+    ground_truth = json.loads(
+        Path(data_config[f"{args.split}_annotations"]).read_text()
+    )
 
     metrics = evaluate_detector(
         build_detector(args, rtdetr_config), ground_truth, data_config["image_dir"]

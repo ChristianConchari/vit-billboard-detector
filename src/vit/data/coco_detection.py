@@ -1,4 +1,4 @@
-"""PyTorch dataset over a COCO detection file, producing Hugging Face processor inputs."""
+"""PyTorch dataset over a COCO detection file, yielding image processor inputs."""
 
 import json
 from collections import defaultdict
@@ -23,12 +23,14 @@ def map_categories_to_labels(
     """
     unknown = [c["name"] for c in categories if c["name"] not in label_names]
     if unknown:
-        raise ValueError(f"Categories {unknown} are not in the model labels {label_names}")
+        raise ValueError(
+            f"Categories {unknown} are not in the model labels {label_names}"
+        )
     return {c["id"]: label_names.index(c["name"]) for c in categories}
 
 
 class CocoDetectionDataset(Dataset):
-    """Yields (image, target) pairs; target follows the processor's COCO detection format."""
+    """Yields (image, target) pairs in the processor's COCO detection format."""
 
     def __init__(
         self,
@@ -41,7 +43,9 @@ class CocoDetectionDataset(Dataset):
         self.image_dir = Path(image_dir)
         self.augmentations = augmentations
         self.images = coco["images"]
-        self.label_by_category_id = map_categories_to_labels(coco["categories"], label_names)
+        self.label_by_category_id = map_categories_to_labels(
+            coco["categories"], label_names
+        )
         self.annotations_by_image: dict[int, list[dict[str, Any]]] = defaultdict(list)
         for annotation in coco["annotations"]:
             self.annotations_by_image[annotation["image_id"]].append(annotation)
@@ -57,12 +61,19 @@ class CocoDetectionDataset(Dataset):
         labels = [self.label_by_category_id[a["category_id"]] for a in annotations]
 
         if self.augmentations is not None:
-            image, boxes, labels = apply_augmentations(self.augmentations, image, boxes, labels)
+            image, boxes, labels = apply_augmentations(
+                self.augmentations, image, boxes, labels
+            )
 
         target = {
             "image_id": image_info["id"],
             "annotations": [
-                {"bbox": box, "category_id": label, "area": box[2] * box[3], "iscrowd": 0}
+                {
+                    "bbox": box,
+                    "category_id": label,
+                    "area": box[2] * box[3],
+                    "iscrowd": 0,
+                }
                 for box, label in zip(boxes, labels, strict=True)
             ],
         }
@@ -70,7 +81,7 @@ class CocoDetectionDataset(Dataset):
 
 
 class DetectionCollator:
-    """Batches (image, target) pairs through the model's image processor (resize + labels)."""
+    """Batches (image, target) pairs through the image processor (resize, labels)."""
 
     def __init__(self, image_processor: BaseImageProcessor):
         self.image_processor = image_processor

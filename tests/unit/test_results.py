@@ -23,7 +23,9 @@ SUMMARY = {
     },
     "latency": {
         "device": "GPU",
-        "models": {"rtdetr": {"mean_ms": 19.8, "median_ms": 19.6, "p95_ms": 20.5, "fps": 50.5}},
+        "models": {
+            "rtdetr": {"mean_ms": 19.8, "median_ms": 19.6, "p95_ms": 20.5, "fps": 50.5}
+        },
     },
 }
 
@@ -32,6 +34,8 @@ def test_results_markdown_renders_every_section():
     markdown = results_markdown(SUMMARY)
 
     assert "| train | 10 | 12 |" in markdown
-    assert "| RT-DETR fine-tuned | 0.500 | 0.600 | 0.400 | - | 0.200 | 0.550 |" in markdown
+    assert (
+        "| RT-DETR fine-tuned | 0.500 | 0.600 | 0.400 | - | 0.200 | 0.550 |" in markdown
+    )
     assert "| 0.168 | 0.900 | 0.700 | 0.800 | 0.5 |" in markdown
     assert "| RT-DETR fine-tuned | 19.8 | 19.6 | 20.5 | 50.5 |" in markdown

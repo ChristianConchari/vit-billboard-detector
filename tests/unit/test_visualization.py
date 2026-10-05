@@ -1,6 +1,11 @@
 from PIL import Image
 
-from vit.eval.visualization import TITLE_BAR_HEIGHT, crop_bottom, draw_detections, side_by_side
+from vit.eval.visualization import (
+    TITLE_BAR_HEIGHT,
+    crop_bottom,
+    draw_detections,
+    side_by_side,
+)
 from vit.inference.detection import BoxProposal
 
 

@@ -46,15 +46,21 @@ def test_perfect_detection_scores_full_map(image_dir):
 
 
 def test_proposal_label_text_is_ignored(image_dir):
-    detector = FixedDetector([BoxProposal("advertising sign", 0.9, (100, 100, 300, 250))])
+    detector = FixedDetector(
+        [BoxProposal("advertising sign", 0.9, (100, 100, 300, 250))]
+    )
 
-    assert evaluate_detector(detector, _ground_truth(), image_dir)["mAP"] == pytest.approx(1.0)
+    assert evaluate_detector(detector, _ground_truth(), image_dir)[
+        "mAP"
+    ] == pytest.approx(1.0)
 
 
 def test_misplaced_detection_scores_zero(image_dir):
     detector = FixedDetector([BoxProposal("billboard", 0.9, (400, 300, 600, 450))])
 
-    assert evaluate_detector(detector, _ground_truth(), image_dir)["mAP"] == pytest.approx(0.0)
+    assert evaluate_detector(detector, _ground_truth(), image_dir)[
+        "mAP"
+    ] == pytest.approx(0.0)
 
 
 def test_no_detections_scores_zero():

@@ -4,7 +4,8 @@ correcting boxes instead of drawing them from scratch.
 
 Usage:
     export LABEL_STUDIO_API_KEY=xxxxxxxx
-    python scripts/push_predictions_to_label_studio.py --project-id 1 --exclude-split test
+    python scripts/push_predictions_to_label_studio.py \
+        --project-id 1 --exclude-split test
 
 Test videos are labeled from scratch (docs/decisions/0003-label-test-from-scratch.md),
 so they must not receive pre-labels.
@@ -69,7 +70,8 @@ def main() -> None:
     )
 
     logger.info(
-        "Pushed predictions for %d/%d image(s), %d unmatched (sync Local Storage first if >0)",
+        "Pushed predictions for %d/%d image(s), %d unmatched "
+        "(sync Local Storage first if >0)",
         summary["pushed"],
         summary["total_images"],
         summary["unmatched"],

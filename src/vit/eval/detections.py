@@ -23,7 +23,9 @@ def collect_detections(
     """
     categories = ground_truth["categories"]
     if len(categories) != 1:
-        raise ValueError(f"Expected a single-category dataset, got {len(categories)} categories")
+        raise ValueError(
+            f"Expected a single-category dataset, got {len(categories)} categories"
+        )
     category_id = categories[0]["id"]
 
     detections = []
@@ -42,8 +44,10 @@ def collect_detections(
     return detections
 
 
-def run_cocoeval(ground_truth: dict[str, Any], detections: list[dict[str, Any]]) -> COCOeval:
-    """Evaluate and accumulate COCO bbox metrics in memory, without pycocotools' console noise."""
+def run_cocoeval(
+    ground_truth: dict[str, Any], detections: list[dict[str, Any]]
+) -> COCOeval:
+    """Evaluate and accumulate COCO bbox metrics in memory, silencing pycocotools."""
     with contextlib.redirect_stdout(io.StringIO()):
         coco_gt = COCO()
         coco_gt.dataset = ground_truth

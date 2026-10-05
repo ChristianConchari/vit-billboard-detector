@@ -4,7 +4,11 @@ import torch
 from vit.models.rtdetr import freeze_backbone
 from vit.train.trainer import build_optimizer
 
-TRAIN_CFG = {"learning_rate": 1e-4, "backbone_learning_rate": 1e-5, "weight_decay": 1e-4}
+TRAIN_CFG = {
+    "learning_rate": 1e-4,
+    "backbone_learning_rate": 1e-5,
+    "weight_decay": 1e-4,
+}
 
 
 class TinyDetector(torch.nn.Module):

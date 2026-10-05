@@ -13,7 +13,11 @@ from vit.data.dataset_split import (
 
 
 def _file_names(frames_per_video: dict[str, int]) -> list[str]:
-    return [f"{video}_{frame}.jpg" for video, n in frames_per_video.items() for frame in range(n)]
+    return [
+        f"{video}_{frame}.jpg"
+        for video, n in frames_per_video.items()
+        for frame in range(n)
+    ]
 
 
 def _make_coco(file_names: list[str]) -> dict:
@@ -48,13 +52,17 @@ def test_video_id_rejects_names_without_frame_number():
 
 def test_assignment_ratios_must_sum_to_one():
     with pytest.raises(ValueError):
-        assign_videos_to_splits(["a_1.jpg"], train_ratio=0.5, val_ratio=0.5, test_ratio=0.5)
+        assign_videos_to_splits(
+            ["a_1.jpg"], train_ratio=0.5, val_ratio=0.5, test_ratio=0.5
+        )
 
 
 def test_assignment_balances_image_counts_across_splits():
     pool = _file_names({f"v{i}": 10 for i in range(20)})
 
-    assignment = assign_videos_to_splits(pool, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15)
+    assignment = assign_videos_to_splits(
+        pool, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15
+    )
 
     images_per_split = {
         s: 10 * list(assignment.values()).count(s) for s in ("train", "val", "test")
@@ -100,7 +108,9 @@ def test_split_rejects_images_from_unassigned_videos():
 def test_split_keeps_only_matching_annotations_and_categories_per_subset():
     pool = _file_names({"a": 2, "b": 2, "c": 2})
 
-    splits = split_coco_by_video(_make_coco(pool), {"a": "train", "b": "val", "c": "test"})
+    splits = split_coco_by_video(
+        _make_coco(pool), {"a": "train", "b": "val", "c": "test"}
+    )
 
     for subset in splits.values():
         image_ids = {img["id"] for img in subset["images"]}
@@ -152,11 +162,15 @@ def test_split_fingerprint_ignores_ids_and_order_but_not_boxes():
     renumbered = {
         "images": [{**img, "id": img["id"] + 100} for img in reversed(coco["images"])],
         "annotations": [
-            {**a, "id": a["id"] + 50, "image_id": a["image_id"] + 100} for a in coco["annotations"]
+            {**a, "id": a["id"] + 50, "image_id": a["image_id"] + 100}
+            for a in coco["annotations"]
         ],
         "categories": coco["categories"],
     }
-    moved_box = {**coco, "annotations": [{**coco["annotations"][0], "bbox": [1, 0, 10, 10]}]}
+    moved_box = {
+        **coco,
+        "annotations": [{**coco["annotations"][0], "bbox": [1, 0, 10, 10]}],
+    }
 
     assert split_fingerprint(renumbered) == split_fingerprint(coco)
     assert split_fingerprint(moved_box) != split_fingerprint(coco)
@@ -167,7 +181,10 @@ def test_subset_by_file_names_keeps_only_the_named_images():
 
     subset = subset_by_file_names(coco, ["c_1.jpg", "a_1.jpg"])
 
-    assert sorted(img["file_name"] for img in subset["images"]) == ["a_1.jpg", "c_1.jpg"]
+    assert sorted(img["file_name"] for img in subset["images"]) == [
+        "a_1.jpg",
+        "c_1.jpg",
+    ]
     assert {a["image_id"] for a in subset["annotations"]} == {1, 3}
 
 

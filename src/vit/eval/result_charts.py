@@ -1,4 +1,4 @@
-"""Headline charts for a pipeline run: model comparison, latency and AP per IoU threshold."""
+"""Headline charts for a pipeline run: model comparison, latency and AP per IoU."""
 
 from pathlib import Path
 from typing import Any
@@ -23,12 +23,16 @@ MODELS = (
 COMPARED_METRICS = ("mAP", "AP50", "AP75")
 
 
-def plot_model_comparison(test_metrics: dict[str, dict[str, float]], output_path: Path) -> None:
+def plot_model_comparison(
+    test_metrics: dict[str, dict[str, float]], output_path: Path
+) -> None:
     """Grouped bars of test mAP, AP50 and AP75 for both models, each bar labeled."""
     figure, axes = new_figure()
     positions = np.arange(len(COMPARED_METRICS))
     width = 0.36
-    for offset, (key, label, color) in zip((-width / 2, width / 2), MODELS, strict=True):
+    for offset, (key, label, color) in zip(
+        (-width / 2, width / 2), MODELS, strict=True
+    ):
         values = [test_metrics[key][metric] for metric in COMPARED_METRICS]
         bars = axes.bar(
             positions + offset,
@@ -42,7 +46,9 @@ def plot_model_comparison(test_metrics: dict[str, dict[str, float]], output_path
         axes.bar_label(bars, fmt="%.2f", padding=3, color=TEXT_PRIMARY, fontsize=9)
     axes.set_xticks(positions, ["mAP@[.5:.95]", "AP50", "AP75"])
     axes.set_ylim(0, 1.05)
-    style_axes(axes, "Test accuracy: fine-tuned vs. zero-shot", "", "Average precision (COCO)")
+    style_axes(
+        axes, "Test accuracy: fine-tuned vs. zero-shot", "", "Average precision (COCO)"
+    )
     add_legend(axes, "upper left")
     save(figure, output_path)
 
@@ -55,7 +61,9 @@ def plot_latency(latency: dict[str, Any], output_path: Path) -> None:
         labels.append(label)
         values.append(latency["models"][key]["mean_ms"])
         colors.append(color)
-    bars = axes.barh(labels, values, height=0.5, color=colors, edgecolor=SURFACE_COLOR, linewidth=2)
+    bars = axes.barh(
+        labels, values, height=0.5, color=colors, edgecolor=SURFACE_COLOR, linewidth=2
+    )
     axes.bar_label(
         bars,
         labels=[f"{ms:.0f} ms · {1000 / ms:.0f} FPS" for ms in values],
@@ -75,11 +83,19 @@ def plot_latency(latency: dict[str, Any], output_path: Path) -> None:
 
 
 def plot_ap_per_iou(curves: list[dict[str, Any]], output_path: Path) -> None:
-    """AP at each IoU threshold: solid lines with markers for test, dashed for validation."""
+    """AP at each IoU threshold: solid lines with markers for test, dashed for val."""
     figure, axes = new_figure()
     for curve in curves:
-        color = ZERO_SHOT_COLOR if curve["model"].startswith("Grounding DINO") else RTDETR_COLOR
-        name = "Grounding DINO zero-shot" if color == ZERO_SHOT_COLOR else "RT-DETR fine-tuned"
+        color = (
+            ZERO_SHOT_COLOR
+            if curve["model"].startswith("Grounding DINO")
+            else RTDETR_COLOR
+        )
+        name = (
+            "Grounding DINO zero-shot"
+            if color == ZERO_SHOT_COLOR
+            else "RT-DETR fine-tuned"
+        )
         thresholds = [float(t) for t in curve["ap"]]
         is_test = curve["split"] == "test"
         axes.plot(
@@ -96,7 +112,10 @@ def plot_ap_per_iou(curves: list[dict[str, Any]], output_path: Path) -> None:
         )
     axes.set_ylim(0, 1.02)
     style_axes(
-        axes, "Where mAP is lost: AP per IoU threshold", "IoU threshold", "Average precision"
+        axes,
+        "Where mAP is lost: AP per IoU threshold",
+        "IoU threshold",
+        "Average precision",
     )
     add_legend(axes, "lower left")
     save(figure, output_path)

@@ -15,13 +15,15 @@ def start_run(mlflow_config: dict[str, Any], run_name: str) -> mlflow.ActiveRun:
 
 
 def require_active_run() -> None:
-    """Fail instead of letting MLflow silently open a stray run in the default experiment."""
+    """Fail instead of letting MLflow open a stray run in the default experiment."""
     if mlflow.active_run() is None:
-        raise RuntimeError("No active MLflow run: wrap the call in vit.utils.tracking.start_run")
+        raise RuntimeError(
+            "No active MLflow run: wrap the call in vit.utils.tracking.start_run"
+        )
 
 
 def git_tags() -> dict[str, str]:
-    """Commit the code ran from, and whether the working tree had uncommitted changes."""
+    """Commit the code ran from, and whether the tree had uncommitted changes."""
     try:
         commit = _git("rev-parse", "HEAD")
         dirty = bool(_git("status", "--porcelain", "--untracked-files=no"))
@@ -51,4 +53,6 @@ def prefixed(metrics: dict[str, float], prefix: str) -> dict[str, float]:
 
 
 def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+    return subprocess.run(
+        ["git", *args], capture_output=True, text=True, check=True
+    ).stdout.strip()

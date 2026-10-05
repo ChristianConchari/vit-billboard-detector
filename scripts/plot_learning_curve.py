@@ -22,10 +22,14 @@ logger = get_logger(__name__, log_file="evaluation.log")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Plot the learning curve from MLflow runs")
+    parser = argparse.ArgumentParser(
+        description="Plot the learning curve from MLflow runs"
+    )
     parser.add_argument("--note", help="Only use runs tagged with this note")
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--output", type=Path, default=Path("reports/figures/learning_curve.png"))
+    parser.add_argument(
+        "--output", type=Path, default=Path("reports/figures/learning_curve.png")
+    )
     return parser.parse_args()
 
 
@@ -36,7 +40,12 @@ def main() -> None:
 
     plot_learning_curve(points, zero_shot_map, args.output)
     write_curve_table(points, zero_shot_map, args.output.with_suffix(".csv"))
-    logger.info("%d run(s), %d training-set size(s) -> %s", len(results), len(points), args.output)
+    logger.info(
+        "%d run(s), %d training-set size(s) -> %s",
+        len(results),
+        len(points),
+        args.output,
+    )
 
 
 if __name__ == "__main__":

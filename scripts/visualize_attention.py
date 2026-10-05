@@ -23,7 +23,9 @@ logger = get_logger(__name__, log_file="evaluation.log")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Visualize RT-DETR attention maps")
-    parser.add_argument("--checkpoint", required=True, help="Fine-tuned RT-DETR checkpoint dir")
+    parser.add_argument(
+        "--checkpoint", required=True, help="Fine-tuned RT-DETR checkpoint dir"
+    )
     parser.add_argument("--split", choices=["train", "val", "test"], default="test")
     parser.add_argument("--score-threshold", type=float, default=0.15)
     parser.add_argument("--max-detections", type=int, default=3)
@@ -33,7 +35,7 @@ def parse_args() -> argparse.Namespace:
         "--images",
         nargs="+",
         metavar="FILE_NAME",
-        help="Render only these images of the split (e.g. the hand-picked README examples)",
+        help="Render only these images of the split (e.g. the README examples)",
     )
     parser.add_argument("--output-dir", default="reports/figures")
     return parser.parse_args()
@@ -42,7 +44,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     data_config = load_config(args.rtdetr_config)["data"]
-    ground_truth = json.loads(Path(data_config[f"{args.split}_annotations"]).read_text())
+    ground_truth = json.loads(
+        Path(data_config[f"{args.split}_annotations"]).read_text()
+    )
     if args.images:
         ground_truth = subset_by_file_names(ground_truth, args.images)
 

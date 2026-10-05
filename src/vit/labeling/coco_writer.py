@@ -14,7 +14,9 @@ class CocoDatasetBuilder:
     """
 
     def __init__(self, category_names: list[str]):
-        self.categories = [{"id": idx + 1, "name": name} for idx, name in enumerate(category_names)]
+        self.categories = [
+            {"id": idx + 1, "name": name} for idx, name in enumerate(category_names)
+        ]
         self._category_id_by_name = {c["name"]: c["id"] for c in self.categories}
         self.images: list[dict[str, Any]] = []
         self.annotations: list[dict[str, Any]] = []

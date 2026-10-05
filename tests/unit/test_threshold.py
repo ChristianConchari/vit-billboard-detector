@@ -22,7 +22,9 @@ def test_each_ground_truth_box_matches_at_most_one_proposal():
 
 
 def test_proposals_without_ground_truth_are_false_positives():
-    assert match_proposals([BoxProposal("billboard", 0.5, (0, 0, 1, 1))], [], 0.5) == [(0.5, False)]
+    assert match_proposals([BoxProposal("billboard", 0.5, (0, 0, 1, 1))], [], 0.5) == [
+        (0.5, False)
+    ]
 
 
 def test_best_f1_threshold_cuts_below_the_last_useful_true_positive():

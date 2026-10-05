@@ -74,7 +74,11 @@ def run_pipeline(
     mlflow_run_name = run_name if train else f"{run_name}-evaluation"
     with start_run(configs.rtdetr["mlflow"], mlflow_run_name):
         _log_run_context(
-            configs, splits, export_path, stage="train+evaluate" if train else "evaluate", note=note
+            configs,
+            splits,
+            export_path,
+            stage="train+evaluate" if train else "evaluate",
+            note=note,
         )
 
         if train:
@@ -99,11 +103,16 @@ def run_pipeline(
                 "calibration",
             )
         )
-        logger.info("Threshold %.3f (F1 %.3f on val)", calibration.score_threshold, calibration.f1)
+        logger.info(
+            "Threshold %.3f (F1 %.3f on val)",
+            calibration.score_threshold,
+            calibration.f1,
+        )
 
         _step("Evaluate on test")
         grounding_dino = build_grounding_dino_detector(
-            configs.grounding_dino, configs.grounding_dino["evaluation"]["box_threshold"]
+            configs.grounding_dino,
+            configs.grounding_dino["evaluation"]["box_threshold"],
         )
         detectors = {"rtdetr": permissive_rtdetr, "grounding-dino": grounding_dino}
         test_metrics = {
@@ -121,7 +130,11 @@ def run_pipeline(
         if render_figures:
             _step("Render figures")
             _render_figures(
-                configs, checkpoint, splits["test"], run_dir, calibration.score_threshold
+                configs,
+                checkpoint,
+                splits["test"],
+                run_dir,
+                calibration.score_threshold,
             )
 
         summary = {
@@ -144,7 +157,9 @@ def run_pipeline(
     return run_dir
 
 
-def _import_export(configs: PipelineConfigs, export_path: Path, image_dir: Path) -> None:
+def _import_export(
+    configs: PipelineConfigs, export_path: Path, image_dir: Path
+) -> None:
     data_cfg = configs.pipeline["data"]
     coco, missing = import_label_studio_export(
         export_path,
@@ -154,8 +169,14 @@ def _import_export(configs: PipelineConfigs, export_path: Path, image_dir: Path)
         fallback_image_dirs=[Path(data_cfg["raw_image_dir"])],
     )
     if missing:
-        raise FileNotFoundError(f"{len(missing)} exported image(s) not found, e.g. {missing[:3]}")
-    logger.info("%d reviewed image(s), %d box(es)", len(coco["images"]), len(coco["annotations"]))
+        raise FileNotFoundError(
+            f"{len(missing)} exported image(s) not found, e.g. {missing[:3]}"
+        )
+    logger.info(
+        "%d reviewed image(s), %d box(es)",
+        len(coco["images"]),
+        len(coco["annotations"]),
+    )
 
 
 def _split(configs: PipelineConfigs) -> dict[str, dict[str, Any]]:
@@ -180,10 +201,15 @@ def _split(configs: PipelineConfigs) -> dict[str, dict[str, Any]]:
 
     write_splits(
         splits,
-        {name: Path(configs.rtdetr["data"][f"{name}_annotations"]) for name in SPLIT_NAMES},
+        {
+            name: Path(configs.rtdetr["data"][f"{name}_annotations"])
+            for name in SPLIT_NAMES
+        },
     )
     for name, counts in _dataset_counts(splits).items():
-        logger.info("%s: %d image(s), %d box(es)", name, counts["images"], counts["boxes"])
+        logger.info(
+            "%s: %d image(s), %d box(es)", name, counts["images"], counts["boxes"]
+        )
     return splits
 
 
@@ -199,9 +225,14 @@ def _log_run_context(
     tags = {
         **git_tags(),
         "stage": stage,
-        "data.reviewed_annotations_sha256": file_digest(Path(data_cfg["reviewed_annotations"])),
+        "data.reviewed_annotations_sha256": file_digest(
+            Path(data_cfg["reviewed_annotations"])
+        ),
         "data.split_assignment_sha256": file_digest(Path(data_cfg["split_assignment"])),
-        **{f"data.{name}_fingerprint": split_fingerprint(split) for name, split in splits.items()},
+        **{
+            f"data.{name}_fingerprint": split_fingerprint(split)
+            for name, split in splits.items()
+        },
     }
     if export_path is not None:
         tags["data.export_sha256"] = file_digest(export_path)
@@ -229,7 +260,8 @@ def _benchmark(
 ) -> dict[str, Any]:
     latency_cfg = configs.pipeline["latency"]
     images = [
-        Image.open(image_dir / info["file_name"]).convert("RGB") for info in test_split["images"]
+        Image.open(image_dir / info["file_name"]).convert("RGB")
+        for info in test_split["images"]
     ]
     return {
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
@@ -252,13 +284,15 @@ def _render_figures(
     figures_cfg = configs.pipeline["figures"]
     image_dir = Path(configs.rtdetr["data"]["image_dir"])
     gdino_threshold = configs.grounding_dino["thresholds"]["box_threshold"]
+    rtdetr = build_rtdetr_detector(
+        checkpoint, configs.rtdetr["model"]["label_names"], rtdetr_threshold
+    )
+    grounding_dino = build_grounding_dino_detector(
+        configs.grounding_dino, gdino_threshold
+    )
     detectors = {
-        f"RT-DETR fine-tuned (score >= {rtdetr_threshold:.2f})": build_rtdetr_detector(
-            checkpoint, configs.rtdetr["model"]["label_names"], rtdetr_threshold
-        ),
-        f"Grounding DINO zero-shot (score >= {gdino_threshold:.2f})": build_grounding_dino_detector(
-            configs.grounding_dino, gdino_threshold
-        ),
+        f"RT-DETR fine-tuned (score >= {rtdetr_threshold:.2f})": rtdetr,
+        f"Grounding DINO zero-shot (score >= {gdino_threshold:.2f})": grounding_dino,
     }
     render_detector_comparison(
         detectors,

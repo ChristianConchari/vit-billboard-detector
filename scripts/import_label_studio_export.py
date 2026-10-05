@@ -1,7 +1,8 @@
 """CLI: import a Label Studio COCO export into data/annotations/reviewed.
 
 Usage:
-    python scripts/import_label_studio_export.py --export-path ~/Downloads/project-1-at-....zip
+    python scripts/import_label_studio_export.py \
+        --export-path ~/Downloads/project-1-at-....zip
 """
 
 import argparse
@@ -15,8 +16,12 @@ logger = get_logger(__name__, log_file="data.log")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Import a Label Studio COCO export")
-    parser.add_argument("--export-path", required=True, help="Path to the exported .zip or .json")
-    parser.add_argument("--output", default="data/annotations/reviewed/reviewed_master.json")
+    parser.add_argument(
+        "--export-path", required=True, help="Path to the exported .zip or .json"
+    )
+    parser.add_argument(
+        "--output", default="data/annotations/reviewed/reviewed_master.json"
+    )
     parser.add_argument("--images-out-dir", default="data/processed")
     parser.add_argument("--extract-dir", default="data/interim/label_studio_export")
     return parser.parse_args()
@@ -33,7 +38,9 @@ def main() -> None:
     )
     if missing:
         logger.warning(
-            "Could not find image file(s), copy manually into %s: %s", args.images_out_dir, missing
+            "Could not find image file(s), copy manually into %s: %s",
+            args.images_out_dir,
+            missing,
         )
     logger.info(
         "Wrote %d image(s) / %d annotation(s) to %s",

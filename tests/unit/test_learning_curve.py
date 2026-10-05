@@ -11,7 +11,9 @@ from vit.eval.learning_curve import (
 
 
 def _run(train_images: int, rtdetr_map: float, test_sha: str = "abc") -> RunResult:
-    return RunResult(f"run-{train_images}", train_images, test_sha, rtdetr_map, zero_shot_map=0.68)
+    return RunResult(
+        f"run-{train_images}", train_images, test_sha, rtdetr_map, zero_shot_map=0.68
+    )
 
 
 def test_runs_with_the_same_training_size_are_aggregated():

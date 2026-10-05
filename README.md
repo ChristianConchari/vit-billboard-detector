@@ -128,7 +128,7 @@ Run every command from the repository root: config and data paths are relative t
 
 ### Code quality and CI
 
-[Ruff](https://docs.astral.sh/ruff/) formats and lints the code (settings in `pyproject.toml`: line length 100, pyflakes, pycodestyle, bugbear, import sorting, pyupgrade):
+[Ruff](https://docs.astral.sh/ruff/) formats and lints the code (settings in `pyproject.toml`: line length 88, pyflakes, pycodestyle, bugbear, import sorting, pyupgrade):
 
 ```bash
 ruff format src scripts tests

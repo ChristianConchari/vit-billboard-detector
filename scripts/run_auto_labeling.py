@@ -24,7 +24,9 @@ CATEGORY_NAME = "billboard"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Grounding DINO auto-labeling pipeline")
+    parser = argparse.ArgumentParser(
+        description="Grounding DINO auto-labeling pipeline"
+    )
     parser.add_argument("--config", default="configs/model/grounding_dino.yaml")
     parser.add_argument("--images-dir", default="data/raw")
     parser.add_argument(
@@ -40,7 +42,9 @@ def main() -> None:
     config = load_config(args.config)
 
     images_dir = Path(args.images_dir)
-    image_paths = sorted(p for p in images_dir.iterdir() if p.suffix.lower() in IMAGE_EXTENSIONS)
+    image_paths = sorted(
+        p for p in images_dir.iterdir() if p.suffix.lower() in IMAGE_EXTENSIONS
+    )
     if not image_paths:
         logger.warning("No images found in %s", images_dir)
         return
@@ -85,7 +89,9 @@ def main() -> None:
         len(builder.annotations),
         output_path,
     )
-    logger.info("Review and correct these boxes before moving them to data/annotations/reviewed")
+    logger.info(
+        "Review and correct these boxes before moving them to data/annotations/reviewed"
+    )
 
 
 if __name__ == "__main__":

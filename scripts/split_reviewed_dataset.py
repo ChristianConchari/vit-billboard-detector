@@ -6,7 +6,7 @@ so re-running after reviewing more images keeps every video in the same split.
 
 Usage:
     python scripts/split_reviewed_dataset.py
-    python scripts/split_reviewed_dataset.py --rebuild-assignment  # after adding new videos
+    python scripts/split_reviewed_dataset.py --rebuild-assignment  # after new videos
 """
 
 import argparse
@@ -30,11 +30,17 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Split a reviewed COCO dataset into train/val/test"
     )
-    parser.add_argument("--input", default="data/annotations/reviewed/reviewed_master.json")
-    parser.add_argument("--output-dir", default="data/annotations/reviewed")
-    parser.add_argument("--assignment", default="data/annotations/reviewed/split_assignment.json")
     parser.add_argument(
-        "--pool-dir", default="data/raw", help="Full image pool used to build the assignment"
+        "--input", default="data/annotations/reviewed/reviewed_master.json"
+    )
+    parser.add_argument("--output-dir", default="data/annotations/reviewed")
+    parser.add_argument(
+        "--assignment", default="data/annotations/reviewed/split_assignment.json"
+    )
+    parser.add_argument(
+        "--pool-dir",
+        default="data/raw",
+        help="Full image pool used to build the assignment",
     )
     parser.add_argument("--rebuild-assignment", action="store_true")
     parser.add_argument("--train-ratio", type=float, default=0.7)
@@ -51,8 +57,9 @@ def main() -> None:
     n_images = len(coco["images"])
     if n_images < MIN_RECOMMENDED_IMAGES:
         logger.warning(
-            "Only %d reviewed image(s): a fixed train/val/test split is not statistically "
-            "meaningful yet. Proceeding anyway so the pipeline can be exercised end-to-end.",
+            "Only %d reviewed image(s): a fixed train/val/test split is not "
+            "statistically meaningful yet. Proceeding anyway so the pipeline can be "
+            "exercised end-to-end.",
             n_images,
         )
 
@@ -71,7 +78,9 @@ def main() -> None:
 
     for name, subset in splits.items():
         if not subset["images"]:
-            logger.warning("%s split is empty: no reviewed images from its videos yet", name)
+            logger.warning(
+                "%s split is empty: no reviewed images from its videos yet", name
+            )
         logger.info(
             "%s: %d image(s), %d annotation(s) -> %s",
             name,

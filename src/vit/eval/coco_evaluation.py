@@ -26,11 +26,16 @@ def coco_metrics(
     with contextlib.redirect_stdout(io.StringIO()):
         coco_eval.summarize()
     summary_stats = coco_eval.stats[: len(METRIC_NAMES)]
-    return {name: float(value) for name, value in zip(METRIC_NAMES, summary_stats, strict=True)}
+    return {
+        name: float(value)
+        for name, value in zip(METRIC_NAMES, summary_stats, strict=True)
+    }
 
 
 def evaluate_detector(
     detector: Detector, ground_truth: dict[str, Any], image_dir: str | Path
 ) -> dict[str, float]:
     """Predict on every ground-truth image and score the proposals (class-agnostic)."""
-    return coco_metrics(ground_truth, collect_detections(detector, ground_truth, image_dir))
+    return coco_metrics(
+        ground_truth, collect_detections(detector, ground_truth, image_dir)
+    )

@@ -76,7 +76,9 @@ def test_copy_referenced_images_copies_matches_and_reports_missing(tmp_path):
     output_dir = tmp_path / "out"
     coco = {"images": [{"file_name": "found.jpg"}, {"file_name": "missing.jpg"}]}
 
-    missing = copy_referenced_images(coco, search_dirs=[search_dir], output_dir=output_dir)
+    missing = copy_referenced_images(
+        coco, search_dirs=[search_dir], output_dir=output_dir
+    )
 
     assert missing == ["missing.jpg"]
     assert (output_dir / "found.jpg").is_file()

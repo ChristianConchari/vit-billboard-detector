@@ -1,4 +1,4 @@
-"""Fixtures for end-to-end tests: a tiny randomly initialized RT-DETR and a synthetic dataset.
+"""Fixtures for end-to-end tests: a tiny random RT-DETR and a synthetic dataset.
 
 Nothing is downloaded, so the tests run on CPU in CI in a few seconds.
 """
@@ -66,7 +66,9 @@ def workspace(tmp_path, tiny_checkpoint) -> dict:
     """Synthetic raw pool, Label Studio export and configs pointing at tmp_path."""
     raw_dir = tmp_path / "data" / "raw"
     raw_dir.mkdir(parents=True)
-    names = [f"{video}_{frame}.jpg" for video in VIDEOS for frame in range(FRAMES_PER_VIDEO)]
+    names = [
+        f"{video}_{frame}.jpg" for video in VIDEOS for frame in range(FRAMES_PER_VIDEO)
+    ]
     for name in names:
         _frame(raw_dir / name)
 
@@ -113,11 +115,17 @@ def workspace(tmp_path, tiny_checkpoint) -> dict:
     rtdetr = load_config(REPO_ROOT / "configs" / "model" / "rtdetr.yaml")
     rtdetr["model"]["pretrained_checkpoint"] = str(tiny_checkpoint)
     rtdetr["data"].update(
-        {f"{split}_annotations": str(reviewed_dir / f"{split}.json") for split in VIDEOS.values()},
+        {
+            f"{split}_annotations": str(reviewed_dir / f"{split}.json")
+            for split in VIDEOS.values()
+        },
         image_dir=str(tmp_path / "data" / "processed"),
     )
     rtdetr["training"].update(
-        epochs=1, batch_size=2, num_workers=0, checkpoint_dir=str(tmp_path / "checkpoints")
+        epochs=1,
+        batch_size=2,
+        num_workers=0,
+        checkpoint_dir=str(tmp_path / "checkpoints"),
     )
     rtdetr["mlflow"]["tracking_uri"] = f"sqlite:///{tmp_path / 'mlflow.db'}"
 
@@ -125,6 +133,8 @@ def workspace(tmp_path, tiny_checkpoint) -> dict:
         "export_path": export_path,
         "pipeline": pipeline,
         "rtdetr": rtdetr,
-        "grounding_dino": load_config(REPO_ROOT / "configs" / "model" / "grounding_dino.yaml"),
+        "grounding_dino": load_config(
+            REPO_ROOT / "configs" / "model" / "grounding_dino.yaml"
+        ),
         "tmp_path": tmp_path,
     }

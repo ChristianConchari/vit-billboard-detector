@@ -1,4 +1,4 @@
-"""Learning curve from MLflow runs: RT-DETR test mAP vs. training images, against zero-shot.
+"""Learning curve from MLflow runs: RT-DETR test mAP vs. training images.
 
 Only runs that trained a model and share the exact same test split are
 comparable; mixing test sets would make the curve meaningless, so it's refused.
@@ -44,7 +44,9 @@ class CurvePoint:
     runs: int
 
 
-def fetch_run_results(mlflow_config: dict[str, Any], note: str | None = None) -> list[RunResult]:
+def fetch_run_results(
+    mlflow_config: dict[str, Any], note: str | None = None
+) -> list[RunResult]:
     client = MlflowClient(tracking_uri=mlflow_config["tracking_uri"])
     experiment = client.get_experiment_by_name(mlflow_config["experiment_name"])
     if experiment is None:
@@ -53,7 +55,9 @@ def fetch_run_results(mlflow_config: dict[str, Any], note: str | None = None) ->
     query = "tags.stage = 'train+evaluate'"
     if note:
         query += f" and tags.note = '{note}'"
-    runs = client.search_runs([experiment.experiment_id], filter_string=query, max_results=1000)
+    runs = client.search_runs(
+        [experiment.experiment_id], filter_string=query, max_results=1000
+    )
     return [
         RunResult(
             run_name=run.info.run_name,
@@ -63,12 +67,13 @@ def fetch_run_results(mlflow_config: dict[str, Any], note: str | None = None) ->
             zero_shot_map=run.data.metrics["test/grounding-dino/mAP"],
         )
         for run in runs
-        if "data.test_fingerprint" in run.data.tags and "test/rtdetr/mAP" in run.data.metrics
+        if "data.test_fingerprint" in run.data.tags
+        and "test/rtdetr/mAP" in run.data.metrics
     ]
 
 
 def build_curve(results: list[RunResult]) -> tuple[list[CurvePoint], float]:
-    """Aggregate runs per training-set size; returns the points and the zero-shot mAP."""
+    """Aggregate runs per training-set size; return the points and zero-shot mAP."""
     if not results:
         raise ValueError("No finished train+evaluate runs to plot")
     test_splits = {r.test_split_fingerprint for r in results}
@@ -88,12 +93,16 @@ def build_curve(results: list[RunResult]) -> tuple[list[CurvePoint], float]:
     return points, statistics.fmean(r.zero_shot_map for r in results)
 
 
-def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_path: Path) -> None:
+def plot_learning_curve(
+    points: list[CurvePoint], zero_shot_map: float, output_path: Path
+) -> None:
     sizes = [p.train_images for p in points]
     means = [p.mean_map for p in points]
 
     figure, axes = new_figure()
-    axes.axhline(zero_shot_map, color=ZERO_SHOT_COLOR, linewidth=2, solid_capstyle="round")
+    axes.axhline(
+        zero_shot_map, color=ZERO_SHOT_COLOR, linewidth=2, solid_capstyle="round"
+    )
     axes.vlines(
         sizes,
         [p.min_map for p in points],
@@ -115,7 +124,9 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
         solid_capstyle="round",
         label="RT-DETR fine-tuned",
     )
-    axes.plot([], [], color=ZERO_SHOT_COLOR, linewidth=2, label="Grounding DINO zero-shot")
+    axes.plot(
+        [], [], color=ZERO_SHOT_COLOR, linewidth=2, label="Grounding DINO zero-shot"
+    )
 
     last = points[-1]
     axes.annotate(
@@ -156,11 +167,15 @@ def plot_learning_curve(points: list[CurvePoint], zero_shot_map: float, output_p
     save(figure, output_path)
 
 
-def write_curve_table(points: list[CurvePoint], zero_shot_map: float, output_path: Path) -> None:
-    """Same data as the plot, as a table for the report and for readers who can't use the chart."""
+def write_curve_table(
+    points: list[CurvePoint], zero_shot_map: float, output_path: Path
+) -> None:
+    """Same data as the plot, as a table for the report and screen-reader users."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="") as file:
-        writer = csv.DictWriter(file, [f.name for f in fields(CurvePoint)] + ["zero_shot_map"])
+        writer = csv.DictWriter(
+            file, [f.name for f in fields(CurvePoint)] + ["zero_shot_map"]
+        )
         writer.writeheader()
         for point in points:
             writer.writerow({**asdict(point), "zero_shot_map": zero_shot_map})

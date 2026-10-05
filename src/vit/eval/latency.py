@@ -1,4 +1,4 @@
-"""End-to-end inference latency (preprocessing + forward + postprocessing) of a Detector."""
+"""End-to-end latency of a Detector: preprocessing, forward pass and postprocessing."""
 
 import statistics
 import time
@@ -44,6 +44,8 @@ def measure_latency(
         images=len(timings_ms),
         mean_ms=mean_ms,
         median_ms=statistics.median(timings_ms),
-        p95_ms=statistics.quantiles(timings_ms, n=20)[-1] if len(timings_ms) > 1 else mean_ms,
+        p95_ms=statistics.quantiles(timings_ms, n=20)[-1]
+        if len(timings_ms) > 1
+        else mean_ms,
         fps=1000 / mean_ms,
     )

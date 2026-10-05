@@ -19,11 +19,13 @@ def draw_detections(
     proposals: list[BoxProposal],
     title: str,
 ) -> Image.Image:
-    """Return a copy of `image` with ground truth (green), predictions (red) and a title bar."""
+    """Copy of `image` with ground truth (green), predictions (red) and a title bar."""
     canvas = draw_predictions(image, proposals)
     draw = ImageDraw.Draw(canvas)
     for x, y, w, h in ground_truth_xywh:
-        draw.rectangle([x, y, x + w, y + h], outline=GROUND_TRUTH_COLOR, width=_line_width(image))
+        draw.rectangle(
+            [x, y, x + w, y + h], outline=GROUND_TRUTH_COLOR, width=_line_width(image)
+        )
     return _with_title(canvas, title)
 
 
@@ -44,14 +46,16 @@ def draw_encoder_attention(
     heatmap = Image.fromarray(np.uint8(ATTENTION_COLORMAP(attention)[..., :3] * 255))
     heatmap = heatmap.resize(image.size, Image.Resampling.BILINEAR)
     canvas = Image.blend(image, heatmap, alpha=0.55)
-    _draw_box(ImageDraw.Draw(canvas), image, detection.box_xyxy, f"{detection.score:.2f}")
+    _draw_box(
+        ImageDraw.Draw(canvas), image, detection.box_xyxy, f"{detection.score:.2f}"
+    )
     return _with_title(canvas, title)
 
 
 def draw_sampling_points(
     image: Image.Image, detection: DetectionAttention, title: str
 ) -> Image.Image:
-    """Draw the decoder query's deformable sampling points, sized and colored by weight."""
+    """Draw the decoder query's deformable sampling points, scaled by weight."""
     canvas = Image.blend(image, Image.new("RGB", image.size), alpha=0.35)
     draw = ImageDraw.Draw(canvas)
     weights = detection.sampling_weights / detection.sampling_weights.max()
@@ -76,8 +80,12 @@ def crop_bottom(image: Image.Image, height: int) -> Image.Image:
 
 def side_by_side(panels: list[Image.Image], max_panel_width: int = 960) -> Image.Image:
     scale = min(1.0, max_panel_width / panels[0].width)
-    resized = [p.resize((round(p.width * scale), round(p.height * scale))) for p in panels]
-    combined = Image.new("RGB", (sum(p.width for p in resized), resized[0].height), (255, 255, 255))
+    resized = [
+        p.resize((round(p.width * scale), round(p.height * scale))) for p in panels
+    ]
+    combined = Image.new(
+        "RGB", (sum(p.width for p in resized), resized[0].height), (255, 255, 255)
+    )
     x_offset = 0
     for panel in resized:
         combined.paste(panel, (x_offset, 0))
@@ -86,7 +94,9 @@ def side_by_side(panels: list[Image.Image], max_panel_width: int = 960) -> Image
 
 
 def _with_title(image: Image.Image, title: str) -> Image.Image:
-    canvas = Image.new("RGB", (image.width, image.height + TITLE_BAR_HEIGHT), (255, 255, 255))
+    canvas = Image.new(
+        "RGB", (image.width, image.height + TITLE_BAR_HEIGHT), (255, 255, 255)
+    )
     canvas.paste(image, (0, TITLE_BAR_HEIGHT))
     ImageDraw.Draw(canvas).text((10, 8), title, fill="black", font=_font(image))
     return canvas
@@ -99,7 +109,12 @@ def _draw_box(
     label: str,
 ) -> None:
     draw.rectangle(box_xyxy, outline=PREDICTION_COLOR, width=_line_width(image))
-    draw.text((box_xyxy[0] + 4, box_xyxy[1] + 2), label, fill=PREDICTION_COLOR, font=_font(image))
+    draw.text(
+        (box_xyxy[0] + 4, box_xyxy[1] + 2),
+        label,
+        fill=PREDICTION_COLOR,
+        font=_font(image),
+    )
 
 
 def _line_width(image: Image.Image) -> int:

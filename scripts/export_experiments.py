@@ -26,10 +26,13 @@ logger = get_logger(__name__, log_file="evaluation.log")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Export MLflow runs to versionable reports")
+    parser = argparse.ArgumentParser(
+        description="Export MLflow runs to versionable reports"
+    )
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
     parser.add_argument(
-        "--test-fingerprint", help="Defaults to the fingerprint of the current test split"
+        "--test-fingerprint",
+        help="Defaults to the fingerprint of the current test split",
     )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/experiments"))
     return parser.parse_args()
@@ -48,7 +51,9 @@ def main() -> None:
     write_runs_csv(records, args.output_dir / "runs.csv")
     (args.output_dir / "summary.md").write_text(summary_markdown(records))
     plot_training_curves(records, args.output_dir / "training_curves.png")
-    logger.info("%d run(s) on test split %s -> %s", len(records), fingerprint, args.output_dir)
+    logger.info(
+        "%d run(s) on test split %s -> %s", len(records), fingerprint, args.output_dir
+    )
 
 
 if __name__ == "__main__":

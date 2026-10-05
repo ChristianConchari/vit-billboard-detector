@@ -21,10 +21,17 @@ def test_overrides_are_parsed_as_yaml_values():
     config = {"training": {"freeze_backbone": True, "learning_rate": 1e-4, "seed": 42}}
 
     apply_overrides(
-        config, ["training.freeze_backbone=false", "training.learning_rate=5e-5", "training.seed=1"]
+        config,
+        [
+            "training.freeze_backbone=false",
+            "training.learning_rate=5e-5",
+            "training.seed=1",
+        ],
     )
 
-    assert config == {"training": {"freeze_backbone": False, "learning_rate": 5e-5, "seed": 1}}
+    assert config == {
+        "training": {"freeze_backbone": False, "learning_rate": 5e-5, "seed": 1}
+    }
 
 
 def test_unknown_keys_are_rejected():

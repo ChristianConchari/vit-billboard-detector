@@ -1,4 +1,4 @@
-"""Render qualitative figures over a labeled split: detector comparisons and attention maps.
+"""Render qualitative figures over a labeled split: comparisons and attention maps.
 
 The bottom `overlay_fraction` of every frame is cropped because the source
 camera burns a timestamp/GPS overlay into it.
@@ -30,7 +30,7 @@ def render_detector_comparison(
     output_dir: Path,
     overlay_fraction: float,
 ) -> int:
-    """Save one side-by-side panel per image (one panel per detector); returns the count."""
+    """Save a side-by-side figure per image (one panel per detector); return count."""
     boxes_by_image = defaultdict(list)
     for annotation in ground_truth["annotations"]:
         boxes_by_image[annotation["image_id"]].append(annotation["bbox"])
@@ -42,7 +42,10 @@ def render_detector_comparison(
         panels = [
             crop_bottom(
                 draw_detections(
-                    image, boxes_by_image[image_info["id"]], detector.predict(image), title
+                    image,
+                    boxes_by_image[image_info["id"]],
+                    detector.predict(image),
+                    title,
                 ),
                 overlay_height,
             )
@@ -66,7 +69,9 @@ def render_attention_maps(
     Returns the number of figures written.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = AutoModelForObjectDetection.from_pretrained(checkpoint, attn_implementation="eager")
+    model = AutoModelForObjectDetection.from_pretrained(
+        checkpoint, attn_implementation="eager"
+    )
     model.to(device)
     image_processor = AutoImageProcessor.from_pretrained(checkpoint)
 
@@ -85,7 +90,9 @@ def render_attention_maps(
                 draw_encoder_attention(
                     image, detection, "Encoder self-attention (box center token)"
                 ),
-                draw_sampling_points(image, detection, "Decoder deformable sampling points"),
+                draw_sampling_points(
+                    image, detection, "Decoder deformable sampling points"
+                ),
             ]
             stem = Path(image_info["file_name"]).stem
             side_by_side(

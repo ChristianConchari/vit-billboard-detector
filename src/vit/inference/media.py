@@ -1,4 +1,4 @@
-"""Run a Detector over image files, image folders and videos, saving annotated copies."""
+"""Run a Detector over images, image folders and videos, saving annotated copies."""
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -27,7 +27,10 @@ def list_images(path: Path) -> list[Path]:
 
 
 def detect_in_images(
-    detector: Detector, image_paths: list[Path], output_dir: Path, overlay_fraction: float = 0.0
+    detector: Detector,
+    image_paths: list[Path],
+    output_dir: Path,
+    overlay_fraction: float = 0.0,
 ) -> list[DetectionRecord]:
     output_dir.mkdir(parents=True, exist_ok=True)
     records = []
@@ -40,7 +43,10 @@ def detect_in_images(
 
 
 def detect_in_video(
-    detector: Detector, video_path: Path, output_dir: Path, overlay_fraction: float = 0.0
+    detector: Detector,
+    video_path: Path,
+    output_dir: Path,
+    overlay_fraction: float = 0.0,
 ) -> list[DetectionRecord]:
     output_dir.mkdir(parents=True, exist_ok=True)
     capture = cv2.VideoCapture(str(video_path))
@@ -62,7 +68,9 @@ def detect_in_video(
                     image.size,
                 )
             writer.write(
-                cv2.cvtColor(np.asarray(draw_predictions(image, proposals)), cv2.COLOR_RGB2BGR)
+                cv2.cvtColor(
+                    np.asarray(draw_predictions(image, proposals)), cv2.COLOR_RGB2BGR
+                )
             )
             records.append(_record(video_path.name, frame_index, proposals))
     finally:
@@ -84,7 +92,9 @@ def _without_overlay(image: Image.Image, overlay_fraction: float) -> Image.Image
     return crop_bottom(image, round(image.height * overlay_fraction))
 
 
-def _record(source: str, frame: int | None, proposals: list[BoxProposal]) -> DetectionRecord:
+def _record(
+    source: str, frame: int | None, proposals: list[BoxProposal]
+) -> DetectionRecord:
     return {
         "source": source,
         "frame": frame,

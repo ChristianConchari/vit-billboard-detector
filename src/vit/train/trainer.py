@@ -55,7 +55,10 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
     )
     val_ground_truth = json.loads(Path(data_cfg["val_annotations"]).read_text())
     val_detector = RtDetrDetector(
-        model, image_processor, device, score_threshold=config["evaluation"]["score_threshold"]
+        model,
+        image_processor,
+        device,
+        score_threshold=config["evaluation"]["score_threshold"],
     )
 
     optimizer = build_optimizer(model, train_cfg)
@@ -67,13 +70,24 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
     best_dir = Path(train_cfg["checkpoint_dir"]) / run_name / "best"
     best_map = -1.0
 
-    mlflow.log_params({"train.images": len(train_loader.dataset), "train.device": str(device)})
+    mlflow.log_params(
+        {"train.images": len(train_loader.dataset), "train.device": str(device)}
+    )
     for epoch in range(1, train_cfg["epochs"] + 1):
         train_loss = train_one_epoch(
-            model, train_loader, optimizer, scheduler, device, train_cfg["max_grad_norm"]
+            model,
+            train_loader,
+            optimizer,
+            scheduler,
+            device,
+            train_cfg["max_grad_norm"],
         )
-        val_metrics = evaluate_detector(val_detector, val_ground_truth, data_cfg["image_dir"])
-        mlflow.log_metrics({"train/loss": train_loss, **prefixed(val_metrics, "val")}, step=epoch)
+        val_metrics = evaluate_detector(
+            val_detector, val_ground_truth, data_cfg["image_dir"]
+        )
+        mlflow.log_metrics(
+            {"train/loss": train_loss, **prefixed(val_metrics, "val")}, step=epoch
+        )
         logger.info(
             "epoch %d/%d | train_loss %.4f | val mAP %.4f | val AP50 %.4f",
             epoch,
@@ -87,15 +101,19 @@ def train_rtdetr(config: dict[str, Any], run_name: str | None = None) -> Path:
             best_map = val_metrics["mAP"]
             model.save_pretrained(best_dir)
             image_processor.save_pretrained(best_dir)
-            mlflow.log_metrics({"val/best_mAP": best_map, "val/best_epoch": epoch}, step=epoch)
+            mlflow.log_metrics(
+                {"val/best_mAP": best_map, "val/best_epoch": epoch}, step=epoch
+            )
 
     mlflow.log_param("train.best_checkpoint", str(best_dir))
     logger.info("Best val mAP %.4f, checkpoint saved to %s", best_map, best_dir)
     return best_dir
 
 
-def build_optimizer(model: PreTrainedModel, train_cfg: dict[str, Any]) -> torch.optim.Optimizer:
-    """AdamW with a separate, lower learning rate for the (unfrozen) pretrained backbone.
+def build_optimizer(
+    model: PreTrainedModel, train_cfg: dict[str, Any]
+) -> torch.optim.Optimizer:
+    """AdamW with a separate, lower learning rate for the pretrained backbone.
 
     Updating the backbone at the head's learning rate tends to wreck its
     pretrained features, so it gets `backbone_learning_rate` instead.
@@ -113,7 +131,8 @@ def build_optimizer(model: PreTrainedModel, train_cfg: dict[str, Any]) -> torch.
         },
     ]
     return torch.optim.AdamW(
-        [group for group in groups if group["params"]], weight_decay=train_cfg["weight_decay"]
+        [group for group in groups if group["params"]],
+        weight_decay=train_cfg["weight_decay"],
     )
 
 
@@ -128,7 +147,9 @@ def train_one_epoch(
     model.train()
     total_loss = 0.0
     for batch in loader:
-        labels = [{k: v.to(device) for k, v in target.items()} for target in batch["labels"]]
+        labels = [
+            {k: v.to(device) for k, v in target.items()} for target in batch["labels"]
+        ]
         loss = model(pixel_values=batch["pixel_values"].to(device), labels=labels).loss
 
         optimizer.zero_grad()

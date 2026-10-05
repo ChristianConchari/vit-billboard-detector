@@ -36,7 +36,9 @@ def test_build_auth_header_uses_legacy_token_directly():
 
 
 def test_bbox_to_percent_converts_pixel_bbox():
-    percent = bbox_to_percent((100.0, 50.0, 200.0, 100.0), img_width=1000, img_height=500)
+    percent = bbox_to_percent(
+        (100.0, 50.0, 200.0, 100.0), img_width=1000, img_height=500
+    )
 
     assert percent == {"x": 10.0, "y": 10.0, "width": 20.0, "height": 20.0}
 
@@ -44,7 +46,10 @@ def test_bbox_to_percent_converts_pixel_bbox():
 def test_match_task_by_filename_finds_task_with_url_encoded_path():
     tasks = [
         {"id": 1, "data": {"image": "/data/local-files/?d=data%2Fraw%2Fother.jpg"}},
-        {"id": 2, "data": {"image": "/data/local-files/?d=data%2Fraw%2Fbillboard-sample.png"}},
+        {
+            "id": 2,
+            "data": {"image": "/data/local-files/?d=data%2Fraw%2Fbillboard-sample.png"},
+        },
     ]
 
     task = match_task_by_filename(tasks, "billboard-sample.png")
@@ -54,7 +59,9 @@ def test_match_task_by_filename_finds_task_with_url_encoded_path():
 
 
 def test_match_task_by_filename_returns_none_when_not_found():
-    tasks = [{"id": 1, "data": {"image": "/data/local-files/?d=data%2Fraw%2Fother.jpg"}}]
+    tasks = [
+        {"id": 1, "data": {"image": "/data/local-files/?d=data%2Fraw%2Fother.jpg"}}
+    ]
 
     assert match_task_by_filename(tasks, "missing.jpg") is None
 

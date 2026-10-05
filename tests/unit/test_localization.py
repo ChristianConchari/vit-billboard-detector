@@ -36,14 +36,18 @@ def test_perfect_boxes_score_full_ap_at_every_iou_threshold():
 
 
 def test_slightly_small_boxes_only_lose_ap_at_high_iou():
-    aps = ap_per_iou_threshold(GROUND_TRUTH, [_detection([110, 105, 180, 90])])  # IoU 0.81
+    aps = ap_per_iou_threshold(
+        GROUND_TRUTH, [_detection([110, 105, 180, 90])]
+    )  # IoU 0.81
 
     assert aps[0.5] == pytest.approx(1.0) and aps[0.8] == pytest.approx(1.0)
     assert aps[0.85] == 0.0 and aps[0.95] == 0.0
 
 
 def test_boxes_by_image_converts_to_xyxy_and_filters_by_score():
-    grouped = boxes_by_image([_detection([0, 0, 10, 20], 0.9), _detection([5, 5, 1, 1], 0.1)], 0.5)
+    grouped = boxes_by_image(
+        [_detection([0, 0, 10, 20], 0.9), _detection([5, 5, 1, 1], 0.1)], 0.5
+    )
 
     assert grouped == {1: [[0, 0, 10, 20]]}
 
@@ -62,7 +66,9 @@ def test_edge_bias_reports_boxes_shrunk_on_every_side():
 
     assert (bias.left, bias.right) == (pytest.approx(-0.05), pytest.approx(-0.05))
     assert (bias.top, bias.bottom) == (pytest.approx(-0.05), pytest.approx(-0.05))
-    assert bias.width_ratio == pytest.approx(0.9) and bias.height_ratio == pytest.approx(0.9)
+    assert bias.width_ratio == pytest.approx(
+        0.9
+    ) and bias.height_ratio == pytest.approx(0.9)
     assert bias.matches == 1
 
 

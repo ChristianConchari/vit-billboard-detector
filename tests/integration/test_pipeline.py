@@ -1,4 +1,4 @@
-"""End-to-end run of the pipeline: export -> split -> train -> calibrate -> evaluate -> report."""
+"""End-to-end pipeline run: export, split, train, calibrate, evaluate, report."""
 
 import json
 
@@ -20,19 +20,27 @@ class FixedZeroShotDetector:
 @pytest.fixture
 def configs(workspace, monkeypatch) -> PipelineConfigs:
     monkeypatch.setattr(
-        pipeline_module, "build_grounding_dino_detector", lambda *_: FixedZeroShotDetector()
+        pipeline_module,
+        "build_grounding_dino_detector",
+        lambda *_: FixedZeroShotDetector(),
     )
-    return PipelineConfigs(workspace["pipeline"], workspace["rtdetr"], workspace["grounding_dino"])
+    return PipelineConfigs(
+        workspace["pipeline"], workspace["rtdetr"], workspace["grounding_dino"]
+    )
 
 
 def _runs(configs: PipelineConfigs):
     client = MlflowClient(tracking_uri=configs.rtdetr["mlflow"]["tracking_uri"])
-    experiment = client.get_experiment_by_name(configs.rtdetr["mlflow"]["experiment_name"])
+    experiment = client.get_experiment_by_name(
+        configs.rtdetr["mlflow"]["experiment_name"]
+    )
     return client, client.search_runs([experiment.experiment_id])
 
 
 def test_pipeline_trains_evaluates_and_reports(configs, workspace):
-    run_dir = run_pipeline(configs, export_path=workspace["export_path"], note="integration")
+    run_dir = run_pipeline(
+        configs, export_path=workspace["export_path"], note="integration"
+    )
 
     summary = json.loads((run_dir / "summary.json").read_text())
     assert summary["dataset"] == {
@@ -53,11 +61,18 @@ def test_pipeline_trains_evaluates_and_reports(configs, workspace):
     assert run.data.tags["stage"] == "train+evaluate"
     assert run.data.tags["note"] == "integration"
     assert "data.test_fingerprint" in run.data.tags
-    assert {"train/loss", "val/mAP", "test/rtdetr/mAP", "latency/rtdetr/mean_ms"} <= set(
-        run.data.metrics
-    )
+    assert {
+        "train/loss",
+        "val/mAP",
+        "test/rtdetr/mAP",
+        "latency/rtdetr/mean_ms",
+    } <= set(run.data.metrics)
     artifacts = {a.path for a in client.list_artifacts(run.info.run_id, "reports")}
-    assert artifacts == {"reports/results.md", "reports/summary.json", "reports/calibration.json"}
+    assert artifacts == {
+        "reports/results.md",
+        "reports/summary.json",
+        "reports/calibration.json",
+    }
 
 
 def test_pipeline_evaluates_an_existing_checkpoint_without_training(configs, workspace):
@@ -78,9 +93,13 @@ def test_pipeline_evaluates_an_existing_checkpoint_without_training(configs, wor
 
 def test_pipeline_refuses_splits_without_reviewed_images(configs, workspace):
     export = json.loads(workspace["export_path"].read_text())
-    test_ids = {img["id"] for img in export["images"] if "testvideo" in img["file_name"]}
+    test_ids = {
+        img["id"] for img in export["images"] if "testvideo" in img["file_name"]
+    }
     export["images"] = [img for img in export["images"] if img["id"] not in test_ids]
-    export["annotations"] = [a for a in export["annotations"] if a["image_id"] not in test_ids]
+    export["annotations"] = [
+        a for a in export["annotations"] if a["image_id"] not in test_ids
+    ]
     workspace["export_path"].write_text(json.dumps(export))
 
     with pytest.raises(ValueError, match="test"):

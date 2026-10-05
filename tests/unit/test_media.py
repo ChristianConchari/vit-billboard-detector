@@ -55,7 +55,9 @@ def test_detect_in_images_saves_annotated_copies_and_records(tmp_path):
     ]
 
 
-def test_detect_in_video_writes_annotated_video_and_one_record_per_frame(tmp_path, video_path):
+def test_detect_in_video_writes_annotated_video_and_one_record_per_frame(
+    tmp_path, video_path
+):
     records = detect_in_video(FixedDetector(), video_path, tmp_path / "out")
 
     assert [r["frame"] for r in records] == [0, 1, 2, 3, 4]

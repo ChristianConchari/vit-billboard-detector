@@ -47,7 +47,9 @@ RECORDS = [
 
 
 def test_seeds_of_one_config_aggregate_into_mean_and_range():
-    summaries = {(s.freeze_backbone, s.train_images): s for s in summarize_by_config(RECORDS)}
+    summaries = {
+        (s.freeze_backbone, s.train_images): s for s in summarize_by_config(RECORDS)
+    }
 
     frozen = summaries[(True, 441)]
     assert frozen.runs == 2
@@ -74,7 +76,10 @@ def test_csv_and_training_curves_are_written(tmp_path):
 
 
 def test_fetch_keeps_only_finished_runs_on_the_given_test_split(tmp_path):
-    config = {"tracking_uri": f"sqlite:///{tmp_path / 'mlflow.db'}", "experiment_name": "exp"}
+    config = {
+        "tracking_uri": f"sqlite:///{tmp_path / 'mlflow.db'}",
+        "experiment_name": "exp",
+    }
     mlflow.set_tracking_uri(config["tracking_uri"])
     mlflow.set_experiment(config["experiment_name"])
 
@@ -99,7 +104,8 @@ def test_fetch_keeps_only_finished_runs_on_the_given_test_split(tmp_path):
             mlflow.log_metric("val/mAP", value, step=step)
         metric_names = (
             "test/rtdetr/mAP test/rtdetr/AP50 test/rtdetr/AP75 test/grounding-dino/mAP "
-            "test/grounding-dino/AP50 val/best_mAP val/best_epoch calibration/score_threshold "
+            "test/grounding-dino/AP50 val/best_mAP val/best_epoch "
+            "calibration/score_threshold "
             "latency/rtdetr/mean_ms"
         ).split()
         mlflow.log_metrics(dict.fromkeys(metric_names, 0.5))

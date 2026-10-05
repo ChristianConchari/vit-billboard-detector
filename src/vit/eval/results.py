@@ -4,7 +4,10 @@ from typing import Any
 
 from vit.eval.coco_evaluation import METRIC_NAMES
 
-MODEL_TITLES = {"rtdetr": "RT-DETR fine-tuned", "grounding-dino": "Grounding DINO zero-shot"}
+MODEL_TITLES = {
+    "rtdetr": "RT-DETR fine-tuned",
+    "grounding-dino": "Grounding DINO zero-shot",
+}
 
 
 def results_markdown(summary: dict[str, Any]) -> str:
@@ -29,7 +32,8 @@ def results_markdown(summary: dict[str, Any]) -> str:
         f"| Model | {' | '.join(METRIC_NAMES)} |",
         f"|---|{'--:|' * len(METRIC_NAMES)}",
         *(
-            f"| {MODEL_TITLES[model]} | {' | '.join(_metric(metrics[m]) for m in METRIC_NAMES)} |"
+            f"| {MODEL_TITLES[model]} | "
+            f"{' | '.join(_metric(metrics[m]) for m in METRIC_NAMES)} |"
             for model, metrics in summary["test_metrics"].items()
         ),
         "",
@@ -48,7 +52,8 @@ def results_markdown(summary: dict[str, Any]) -> str:
         "| Model | Mean (ms) | Median (ms) | p95 (ms) | FPS |",
         "|---|--:|--:|--:|--:|",
         *(
-            f"| {MODEL_TITLES[model]} | {stats['mean_ms']:.1f} | {stats['median_ms']:.1f} "
+            f"| {MODEL_TITLES[model]} | {stats['mean_ms']:.1f} "
+            f"| {stats['median_ms']:.1f} "
             f"| {stats['p95_ms']:.1f} | {stats['fps']:.1f} |"
             for model, stats in latency["models"].items()
         ),

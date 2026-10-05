@@ -5,7 +5,9 @@ from vit.labeling.grounding_dino_labeler import deduplicate_proposals
 def test_deduplicate_keeps_highest_score_among_overlapping_boxes():
     proposals = [
         BoxProposal(label="billboard", score=0.55, box_xyxy=(100, 100, 300, 300)),
-        BoxProposal(label="advertising sign", score=0.90, box_xyxy=(102, 101, 301, 299)),
+        BoxProposal(
+            label="advertising sign", score=0.90, box_xyxy=(102, 101, 301, 299)
+        ),
         BoxProposal(label="ooh ad", score=0.40, box_xyxy=(105, 103, 298, 302)),
     ]
 

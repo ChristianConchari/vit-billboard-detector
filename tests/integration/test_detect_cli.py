@@ -21,7 +21,9 @@ def _detect(*args: str) -> subprocess.CompletedProcess:
     )
 
 
-def test_detect_annotates_a_video_and_writes_one_record_per_frame(tmp_path, tiny_checkpoint):
+def test_detect_annotates_a_video_and_writes_one_record_per_frame(
+    tmp_path, tiny_checkpoint
+):
     video = tmp_path / "drive.mp4"
     writer = cv2.VideoWriter(str(video), cv2.VideoWriter_fourcc(*"mp4v"), 5, (320, 240))
     for _ in range(4):
@@ -29,7 +31,11 @@ def test_detect_annotates_a_video_and_writes_one_record_per_frame(tmp_path, tiny
     writer.release()
 
     result = _detect(
-        str(video), "--checkpoint", str(tiny_checkpoint), "--output-dir", str(tmp_path / "out")
+        str(video),
+        "--checkpoint",
+        str(tiny_checkpoint),
+        "--output-dir",
+        str(tmp_path / "out"),
     )
 
     assert result.returncode == 0, result.stderr
@@ -61,7 +67,9 @@ def test_detect_annotates_every_image_in_a_folder(tmp_path, tiny_checkpoint):
 
 
 def test_detect_fails_cleanly_on_a_missing_source(tmp_path, tiny_checkpoint):
-    result = _detect(str(tmp_path / "missing.jpg"), "--checkpoint", str(tiny_checkpoint))
+    result = _detect(
+        str(tmp_path / "missing.jpg"), "--checkpoint", str(tiny_checkpoint)
+    )
 
     assert result.returncode != 0
     assert "Source not found" in result.stderr

@@ -4,7 +4,11 @@ import torch
 from PIL import Image
 
 from vit.eval.attention_maps import DetectionAttention, deformable_sampling, token_at
-from vit.eval.visualization import TITLE_BAR_HEIGHT, draw_encoder_attention, draw_sampling_points
+from vit.eval.visualization import (
+    TITLE_BAR_HEIGHT,
+    draw_encoder_attention,
+    draw_sampling_points,
+)
 
 
 class FakeDeformableAttention(torch.nn.Module):

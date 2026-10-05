@@ -8,7 +8,8 @@ Writes reports/metrics/localization_<split>.md (two tables) and the same data as
 
 Usage:
     python scripts/analyze_localization.py \
-        --checkpoint checkpoints/rtdetr/<run-a>/best --checkpoint checkpoints/rtdetr/<run-b>/best
+        --checkpoint checkpoints/rtdetr/<run-a>/best \
+        --checkpoint checkpoints/rtdetr/<run-b>/best
 """
 
 import argparse
@@ -37,19 +38,27 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Localization diagnostics for RT-DETR")
     parser.add_argument("--checkpoint", type=Path, action="append", required=True)
     parser.add_argument("--split", choices=["train", "val", "test"], default="test")
-    parser.add_argument("--reference-split", choices=["train", "val", "test"], default="val")
     parser.add_argument(
-        "--auto-labels", type=Path, default=Path("data/annotations/auto/auto_labels.json")
+        "--reference-split", choices=["train", "val", "test"], default="val"
+    )
+    parser.add_argument(
+        "--auto-labels",
+        type=Path,
+        default=Path("data/annotations/auto/auto_labels.json"),
     )
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
+    parser.add_argument(
+        "--grounding-dino-config", default="configs/model/grounding_dino.yaml"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/metrics"))
     return parser.parse_args()
 
 
 def pre_labels_for(split: dict, auto_labels: dict) -> dict[int, list[list[float]]]:
-    """Grounding DINO pre-label boxes, re-keyed to the split's image ids by file name."""
-    auto_image_ids = {image["file_name"]: image["id"] for image in auto_labels["images"]}
+    """Grounding DINO pre-label boxes keyed by the split's image ids (via file name)."""
+    auto_image_ids = {
+        image["file_name"]: image["id"] for image in auto_labels["images"]
+    }
     auto_boxes = boxes_by_image(auto_labels["annotations"])
     return {
         image["id"]: auto_boxes.get(auto_image_ids[image["file_name"]], [])
@@ -59,20 +68,25 @@ def pre_labels_for(split: dict, auto_labels: dict) -> dict[int, list[list[float]
 
 def bias_row(name: str, bias: EdgeBias) -> str:
     return (
-        f"| {name} | {bias.left:+.3f} | {bias.top:+.3f} | {bias.right:+.3f} | {bias.bottom:+.3f} "
+        f"| {name} | {bias.left:+.3f} | {bias.top:+.3f} "
+        f"| {bias.right:+.3f} | {bias.bottom:+.3f} "
         f"| {bias.width_ratio:.3f} | {bias.height_ratio:.3f} | {bias.median_iou:.3f} "
         f"| {bias.matches} |"
     )
 
 
-def report_markdown(split: str, ap_curves: list[dict], biases: dict[str, EdgeBias]) -> str:
+def report_markdown(
+    split: str, ap_curves: list[dict], biases: dict[str, EdgeBias]
+) -> str:
     return "\n".join(
         [
             f"# Localization diagnostics ({split})",
             "",
             "## AP per IoU threshold (all areas, up to 100 detections)",
             "",
-            "| Model | Split | " + " | ".join(f"{t:.2f}" for t in IOU_THRESHOLDS) + " |",
+            "| Model | Split | "
+            + " | ".join(f"{t:.2f}" for t in IOU_THRESHOLDS)
+            + " |",
             "|---|---|" + "--:|" * len(IOU_THRESHOLDS),
             *(
                 f"| {c['model']} | {c['split']} | "
@@ -83,11 +97,13 @@ def report_markdown(split: str, ap_curves: list[dict], biases: dict[str, EdgeBia
             "",
             f"## Edge bias against the {split} ground truth",
             "",
-            "Signed edge offsets normalized by the ground-truth box size: positive means the "
-            "predicted edge lies outside the ground-truth box (box too large), negative inside "
-            "(box too small). Models use their calibrated score threshold.",
+            "Signed edge offsets normalized by the ground-truth box size: positive "
+            "means the predicted edge lies outside the ground-truth box (box too "
+            "large), negative inside (box too small). Models use their calibrated "
+            "score threshold.",
             "",
-            "| Boxes | Left | Top | Right | Bottom | Width ratio | Height ratio | Median IoU "
+            "| Boxes | Left | Top | Right | Bottom | Width ratio | Height ratio "
+            "| Median IoU "
             "| Matches |",
             "|---|--:|--:|--:|--:|--:|--:|--:|--:|",
             *(bias_row(name, bias) for name, bias in biases.items()),
@@ -111,7 +127,9 @@ def main() -> None:
     for checkpoint in args.checkpoint:
         run_name = checkpoint.parent.name
         detector = build_rtdetr_detector(
-            checkpoint, config["model"]["label_names"], config["evaluation"]["score_threshold"]
+            checkpoint,
+            config["model"]["label_names"],
+            config["evaluation"]["score_threshold"],
         )
         for split_name, split in splits.items():
             detections = collect_detections(detector, split, data_cfg["image_dir"])
@@ -124,16 +142,21 @@ def main() -> None:
             )
             if split_name == args.split:
                 threshold = (
-                    load_calibrated_threshold(checkpoint) or config["inference"]["score_threshold"]
+                    load_calibrated_threshold(checkpoint)
+                    or config["inference"]["score_threshold"]
                 )
                 predicted = boxes_by_image(detections, min_score=threshold)
-                biases[run_name] = edge_bias(match_to_ground_truth(ground_truth_boxes, predicted))
+                biases[run_name] = edge_bias(
+                    match_to_ground_truth(ground_truth_boxes, predicted)
+                )
 
     gdino_config = load_config(args.grounding_dino_config)
     zero_shot = build_grounding_dino_detector(
         gdino_config, gdino_config["evaluation"]["box_threshold"]
     )
-    zero_shot_detections = collect_detections(zero_shot, splits[args.split], data_cfg["image_dir"])
+    zero_shot_detections = collect_detections(
+        zero_shot, splits[args.split], data_cfg["image_dir"]
+    )
     ap_curves.append(
         {
             "model": "Grounding DINO zero-shot",
@@ -142,14 +165,18 @@ def main() -> None:
         }
     )
 
-    pre_labels = pre_labels_for(splits[args.split], json.loads(args.auto_labels.read_text()))
+    pre_labels = pre_labels_for(
+        splits[args.split], json.loads(args.auto_labels.read_text())
+    )
     biases["Grounding DINO pre-labels"] = edge_bias(
         match_to_ground_truth(ground_truth_boxes, pre_labels)
     )
 
     output_stem = args.output_dir / f"localization_{args.split}"
     output_stem.parent.mkdir(parents=True, exist_ok=True)
-    output_stem.with_suffix(".md").write_text(report_markdown(args.split, ap_curves, biases))
+    output_stem.with_suffix(".md").write_text(
+        report_markdown(args.split, ap_curves, biases)
+    )
     output_stem.with_suffix(".json").write_text(
         json.dumps(
             {

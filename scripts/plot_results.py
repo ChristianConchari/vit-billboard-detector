@@ -20,9 +20,13 @@ logger = get_logger(__name__, log_file="evaluation.log")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot headline result charts")
-    parser.add_argument("--run-dir", type=Path, required=True, help="Directory with summary.json")
     parser.add_argument(
-        "--localization", type=Path, help="JSON written by scripts/analyze_localization.py"
+        "--run-dir", type=Path, required=True, help="Directory with summary.json"
+    )
+    parser.add_argument(
+        "--localization",
+        type=Path,
+        help="JSON written by scripts/analyze_localization.py",
     )
     parser.add_argument(
         "--checkpoint-run",
@@ -35,7 +39,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     summary = json.loads((args.run_dir / "summary.json").read_text())
-    plot_model_comparison(summary["test_metrics"], args.output_dir / "model_comparison.png")
+    plot_model_comparison(
+        summary["test_metrics"], args.output_dir / "model_comparison.png"
+    )
     plot_latency(summary["latency"], args.output_dir / "latency.png")
 
     if args.localization:

@@ -2,8 +2,8 @@
 
 Usage:
     python scripts/run_pipeline.py --export-path ~/Downloads/project-1-at-....zip
-    python scripts/run_pipeline.py                                    # reuse the imported dataset
-    python scripts/run_pipeline.py --checkpoint checkpoints/rtdetr/<run>/best  # skip training
+    python scripts/run_pipeline.py  # reuse the imported dataset
+    python scripts/run_pipeline.py --checkpoint checkpoints/rtdetr/<run>/best
     python scripts/run_pipeline.py --export-path <export>.zip --note learning-curve
     python scripts/run_pipeline.py --set training.freeze_backbone=false --note ablation
 """
@@ -16,24 +16,35 @@ from vit.utils.config import apply_overrides, load_config
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the end-to-end billboard detection pipeline")
-    parser.add_argument("--export-path", type=Path, help="Label Studio COCO export (.zip or .json)")
+    parser = argparse.ArgumentParser(
+        description="Run the end-to-end billboard detection pipeline"
+    )
     parser.add_argument(
-        "--checkpoint", type=Path, help="Evaluate this RT-DETR checkpoint instead of training"
+        "--export-path", type=Path, help="Label Studio COCO export (.zip or .json)"
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        help="Evaluate this RT-DETR checkpoint instead of training",
     )
     parser.add_argument("--skip-figures", action="store_true")
     parser.add_argument("--pipeline-config", default="configs/pipeline.yaml")
     parser.add_argument("--rtdetr-config", default="configs/model/rtdetr.yaml")
-    parser.add_argument("--grounding-dino-config", default="configs/model/grounding_dino.yaml")
+    parser.add_argument(
+        "--grounding-dino-config", default="configs/model/grounding_dino.yaml"
+    )
     parser.add_argument(
         "--set",
         dest="overrides",
         action="append",
         default=[],
         metavar="KEY=VALUE",
-        help="Override an RT-DETR config value, e.g. training.freeze_backbone=false (repeatable)",
+        help="Override an RT-DETR config value, e.g. "
+        "training.freeze_backbone=false (repeatable)",
     )
-    parser.add_argument("--note", help='MLflow tag to group related runs, e.g. "learning-curve"')
+    parser.add_argument(
+        "--note", help='MLflow tag to group related runs, e.g. "learning-curve"'
+    )
     return parser.parse_args()
 
 

@@ -1,4 +1,4 @@
-"""Localization diagnostics: where AP drops across IoU thresholds, and systematic box bias.
+"""Localization diagnostics: where AP drops across IoU thresholds, and box bias.
 
 Used to show that the high-IoU ceiling comes from a labeling convention: models
 trained on corrected Grounding DINO pre-labels draw boxes in that model's
@@ -42,7 +42,7 @@ class EdgeBias:
 def ap_per_iou_threshold(
     ground_truth: dict[str, Any], detections: list[dict[str, Any]]
 ) -> dict[float, float]:
-    """AP (all areas, up to 100 detections) at each COCO IoU threshold from 0.50 to 0.95."""
+    """AP (all areas, up to 100 detections) at each IoU threshold from 0.50 to 0.95."""
     if not detections:
         return dict.fromkeys(IOU_THRESHOLDS, 0.0)
     precision = run_cocoeval(ground_truth, detections).eval["precision"][:, :, 0, 0, -1]
@@ -70,7 +70,7 @@ def match_to_ground_truth(
     candidate_boxes: dict[int, list[BoxXYXY]],
     min_iou: float = 0.5,
 ) -> list[MatchedPair]:
-    """Pair each ground-truth box with its highest-IoU candidate, if that IoU reaches `min_iou`."""
+    """Pair each ground-truth box with its best-IoU candidate, if >= `min_iou`."""
     pairs = []
     for image_id, gt_boxes in ground_truth_boxes.items():
         candidates = candidate_boxes.get(image_id)

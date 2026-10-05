@@ -51,19 +51,25 @@ def test_unknown_category_name_is_rejected():
 
 
 def test_dataset_yields_processor_ready_targets(coco_dir):
-    dataset = CocoDetectionDataset(coco_dir / "annotations.json", coco_dir, ["billboard"])
+    dataset = CocoDetectionDataset(
+        coco_dir / "annotations.json", coco_dir, ["billboard"]
+    )
 
     image, target = dataset[0]
 
     assert image.size == (200, 100)
     assert target == {
         "image_id": 0,
-        "annotations": [{"bbox": [10, 20, 50, 40], "category_id": 0, "area": 2000, "iscrowd": 0}],
+        "annotations": [
+            {"bbox": [10, 20, 50, 40], "category_id": 0, "area": 2000, "iscrowd": 0}
+        ],
     }
 
 
 def test_dataset_keeps_images_without_boxes_as_negatives(coco_dir):
-    dataset = CocoDetectionDataset(coco_dir / "annotations.json", coco_dir, ["billboard"])
+    dataset = CocoDetectionDataset(
+        coco_dir / "annotations.json", coco_dir, ["billboard"]
+    )
 
     _, target = dataset[1]
 
@@ -88,6 +94,8 @@ def test_augmented_boxes_stay_inside_the_image():
 def test_augmentations_accept_images_without_boxes():
     augmentations = build_train_augmentations(AUGMENTATION_CONFIG)
 
-    _, boxes, labels = apply_augmentations(augmentations, Image.new("RGB", (200, 100)), [], [])
+    _, boxes, labels = apply_augmentations(
+        augmentations, Image.new("RGB", (200, 100)), [], []
+    )
 
     assert boxes == [] and labels == []

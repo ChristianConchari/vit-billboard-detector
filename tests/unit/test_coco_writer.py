@@ -47,7 +47,9 @@ def test_add_annotation_rejects_unknown_category():
 def test_save_writes_valid_coco_json(tmp_path):
     builder = CocoDatasetBuilder(category_names=["billboard"])
     image_id = builder.add_image("a.jpg", width=800, height=600)
-    builder.add_annotation(image_id=image_id, category_name="billboard", bbox_xywh=(0, 0, 10, 10))
+    builder.add_annotation(
+        image_id=image_id, category_name="billboard", bbox_xywh=(0, 0, 10, 10)
+    )
 
     output_path = tmp_path / "nested" / "auto_labels.json"
     builder.save(output_path)

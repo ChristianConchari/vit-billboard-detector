@@ -67,14 +67,18 @@ def match_proposals(
 
 
 def best_f1_threshold(
-    scored_matches: list[tuple[float, bool]], total_ground_truth: int, iou_threshold: float
+    scored_matches: list[tuple[float, bool]],
+    total_ground_truth: int,
+    iou_threshold: float,
 ) -> ThresholdCalibration:
     if total_ground_truth == 0:
         raise ValueError("Cannot calibrate a threshold without ground-truth boxes")
 
     best = ThresholdCalibration(1.0, 0.0, 0.0, 0.0, iou_threshold)
     true_positives = 0
-    for rank, (score, is_true_positive) in enumerate(sorted(scored_matches, reverse=True), start=1):
+    for rank, (score, is_true_positive) in enumerate(
+        sorted(scored_matches, reverse=True), start=1
+    ):
         true_positives += is_true_positive
         precision = true_positives / rank
         recall = true_positives / total_ground_truth
@@ -90,8 +94,10 @@ def calibrate_threshold(
     image_dir: str | Path,
     iou_threshold: float = 0.5,
 ) -> ThresholdCalibration:
-    """Run `detector` (with a permissive threshold) on every image and pick the best-F1 cutoff."""
-    boxes_by_image: dict[int, list[BoxXYXY]] = {img["id"]: [] for img in ground_truth["images"]}
+    """Run a permissive `detector` on every image and pick the best-F1 score cutoff."""
+    boxes_by_image: dict[int, list[BoxXYXY]] = {
+        img["id"]: [] for img in ground_truth["images"]
+    }
     for annotation in ground_truth["annotations"]:
         x, y, w, h = annotation["bbox"]
         boxes_by_image[annotation["image_id"]].append((x, y, x + w, y + h))

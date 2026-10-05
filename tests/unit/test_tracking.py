@@ -1,7 +1,13 @@
 import mlflow
 import pytest
 
-from vit.utils.tracking import file_digest, flatten, git_tags, prefixed, require_active_run
+from vit.utils.tracking import (
+    file_digest,
+    flatten,
+    git_tags,
+    prefixed,
+    require_active_run,
+)
 
 
 def test_flatten_uses_dotted_keys_and_prefix():

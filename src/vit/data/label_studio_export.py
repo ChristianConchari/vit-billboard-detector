@@ -32,7 +32,8 @@ def find_coco_json(directory: Path) -> Path:
             return path
 
     raise FileNotFoundError(
-        f"No COCO-format json (with images/annotations/categories) found under {directory}"
+        "No COCO-format json (with images/annotations/categories) found under "
+        f"{directory}"
     )
 
 
@@ -50,7 +51,7 @@ def normalize_file_names(coco: dict[str, Any]) -> dict[str, Any]:
 def copy_referenced_images(
     coco: dict[str, Any], search_dirs: list[Path], output_dir: Path
 ) -> list[str]:
-    """Copy every image referenced in `coco` into output_dir (flat), matched by basename.
+    """Copy every image referenced in `coco` into output_dir (flat), by basename.
 
     Searches search_dirs in order (first match wins). Returns the list of
     file names that could not be found in any search dir.
@@ -97,7 +98,9 @@ def import_label_studio_export(
         coco_json_path, search_root = export_path, export_path.parent
 
     coco = normalize_file_names(json.loads(coco_json_path.read_text()))
-    missing = copy_referenced_images(coco, [search_root, *fallback_image_dirs], images_out_dir)
+    missing = copy_referenced_images(
+        coco, [search_root, *fallback_image_dirs], images_out_dir
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(coco, indent=2))

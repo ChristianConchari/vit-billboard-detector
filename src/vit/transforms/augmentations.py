@@ -28,7 +28,10 @@ def build_train_augmentations(config: dict[str, Any]) -> v2.Compose:
 
 
 def apply_augmentations(
-    augmentations: v2.Compose, image: Image.Image, boxes_xywh: BoxesXYWH, labels: list[int]
+    augmentations: v2.Compose,
+    image: Image.Image,
+    boxes_xywh: BoxesXYWH,
+    labels: list[int],
 ) -> tuple[Image.Image, BoxesXYWH, list[int]]:
     boxes = tv_tensors.BoundingBoxes(
         torch.tensor(boxes_xywh, dtype=torch.float32).reshape(-1, 4),

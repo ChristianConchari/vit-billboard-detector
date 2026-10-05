@@ -11,7 +11,11 @@ LATENCY = {
 CURVES = [
     {"model": "rtdetr-run", "split": "test", "ap": {"0.5": 0.93, "0.95": 0.01}},
     {"model": "rtdetr-run", "split": "val", "ap": {"0.5": 0.89, "0.95": 0.48}},
-    {"model": "Grounding DINO zero-shot", "split": "test", "ap": {"0.5": 0.72, "0.95": 0.01}},
+    {
+        "model": "Grounding DINO zero-shot",
+        "split": "test",
+        "ap": {"0.5": 0.72, "0.95": 0.01},
+    },
 ]
 
 

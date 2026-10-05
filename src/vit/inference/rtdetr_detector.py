@@ -26,7 +26,9 @@ class RtDetrDetector:
         inputs = self.image_processor(images=image, return_tensors="pt").to(self.device)
         outputs = self.model(**inputs)
         result = self.image_processor.post_process_object_detection(
-            outputs, threshold=self.score_threshold, target_sizes=[(image.height, image.width)]
+            outputs,
+            threshold=self.score_threshold,
+            target_sizes=[(image.height, image.width)],
         )[0]
 
         boxes = result["boxes"].clamp(min=0)
@@ -39,6 +41,9 @@ class RtDetrDetector:
                 box_xyxy=tuple(box),
             )
             for box, score, label in zip(
-                boxes.tolist(), result["scores"].tolist(), result["labels"].tolist(), strict=True
+                boxes.tolist(),
+                result["scores"].tolist(),
+                result["labels"].tolist(),
+                strict=True,
             )
         ]

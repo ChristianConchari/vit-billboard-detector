@@ -50,7 +50,10 @@ def deformable_sampling(
         batch_size, num_queries, heads, levels, points, 2
     )
     weights = torch.softmax(
-        attention_module.attention_weights(queries).view(batch_size, num_queries, heads, -1), dim=-1
+        attention_module.attention_weights(queries).view(
+            batch_size, num_queries, heads, -1
+        ),
+        dim=-1,
     ).view(batch_size, num_queries, heads, levels, points)
 
     centers = reference_boxes[:, :, None, :, None, :2]
@@ -119,7 +122,8 @@ def explain_detections(
                 .reshape(grid_height, grid_width)
                 .cpu()
                 .numpy(),
-                sampling_points_xy=locations[0, query].reshape(-1, 2).cpu().numpy() * image_size,
+                sampling_points_xy=locations[0, query].reshape(-1, 2).cpu().numpy()
+                * image_size,
                 sampling_weights=weights[0, query].reshape(-1).cpu().numpy(),
             )
         )

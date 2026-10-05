@@ -1,4 +1,4 @@
-"""Export the MLflow experiment record so it can be versioned and read without the database.
+"""Export the MLflow experiment record so it can be versioned and read without MLflow.
 
 Only finished runs evaluated on one frozen test split (matched by content
 fingerprint) are included, so every number in the export is comparable.
@@ -56,7 +56,9 @@ class ConfigSummary:
     stats: dict[str, tuple[float, float, float]]  # metric -> (mean, min, max)
 
 
-def fetch_run_records(mlflow_config: dict[str, Any], test_fingerprint: str) -> list[RunRecord]:
+def fetch_run_records(
+    mlflow_config: dict[str, Any], test_fingerprint: str
+) -> list[RunRecord]:
     client = MlflowClient(tracking_uri=mlflow_config["tracking_uri"])
     experiment = client.get_experiment_by_name(mlflow_config["experiment_name"])
     if experiment is None:
@@ -77,7 +79,9 @@ def fetch_run_records(mlflow_config: dict[str, Any], test_fingerprint: str) -> l
 
 def _record(client: MlflowClient, run) -> RunRecord:
     tags, params, metrics = run.data.tags, run.data.params, run.data.metrics
-    history = sorted(client.get_metric_history(run.info.run_id, "val/mAP"), key=lambda m: m.step)
+    history = sorted(
+        client.get_metric_history(run.info.run_id, "val/mAP"), key=lambda m: m.step
+    )
     return RunRecord(
         run_name=run.info.run_name,
         note=tags.get("note", ""),
@@ -109,12 +113,15 @@ def write_runs_csv(records: list[RunRecord], output_path: Path) -> None:
         writer.writeheader()
         for record in records:
             writer.writerow(
-                {k: round(v, 4) if isinstance(v, float) else v for k, v in asdict(record).items()}
+                {
+                    k: round(v, 4) if isinstance(v, float) else v
+                    for k, v in asdict(record).items()
+                }
             )
 
 
 def summarize_by_config(records: list[RunRecord]) -> list[ConfigSummary]:
-    """Group runs by (backbone frozen, training-set size): repeated seeds aggregate into one row."""
+    """Group runs by (backbone frozen, training-set size); seeds share one row."""
     groups: dict[tuple[bool, int], list[RunRecord]] = defaultdict(list)
     for record in records:
         groups[(record.freeze_backbone, record.train_images)].append(record)
@@ -139,33 +146,39 @@ def _mean_and_range(values: list[float]) -> tuple[float, float, float]:
 
 
 def summary_markdown(records: list[RunRecord]) -> str:
-    curve = sorted((r for r in records if r.note == "learning-curve"), key=lambda r: r.train_images)
+    curve = sorted(
+        (r for r in records if r.note == "learning-curve"), key=lambda r: r.train_images
+    )
     final_size = max(r.train_images for r in records)
     ablation = [s for s in summarize_by_config(records) if s.train_images == final_size]
     lines = [
         "# Experiment record",
         "",
         f"{len(records)} tracked runs evaluated on the frozen test split "
-        f"(fingerprint `{records[0].test_fingerprint}`). Full per-run data: `runs.csv`.",
+        f"(fingerprint `{records[0].test_fingerprint}`). "
+        "Full per-run data: `runs.csv`.",
         "",
         "## Learning curve (backbone frozen, seed 42)",
         "",
         "| Train images | RT-DETR mAP | AP50 | AP75 | Grounding DINO mAP | Run |",
         "|--:|--:|--:|--:|--:|---|",
         *(
-            f"| {r.train_images} | {r.test_mAP:.3f} | {r.test_AP50:.3f} | {r.test_AP75:.3f} "
+            f"| {r.train_images} | {r.test_mAP:.3f} | {r.test_AP50:.3f} "
+            f"| {r.test_AP75:.3f} "
             f"| {r.zero_shot_mAP:.3f} | `{r.run_name}` |"
             for r in curve
         ),
         "",
-        f"## Backbone ablation ({final_size} training images, mean and range over seeds)",
+        f"## Backbone ablation ({final_size} training images, "
+        "mean and range over seeds)",
         "",
         "| Backbone | Runs | mAP | AP50 | AP75 |",
         "|---|--:|--:|--:|--:|",
         *(
             f"| {'frozen' if s.freeze_backbone else 'unfrozen'} | {s.runs} | "
             + " | ".join(
-                f"{mean:.3f} ({low:.3f}–{high:.3f})" for mean, low, high in s.stats.values()
+                f"{mean:.3f} ({low:.3f}–{high:.3f})"
+                for mean, low, high in s.stats.values()
             )
             + " |"
             for s in ablation

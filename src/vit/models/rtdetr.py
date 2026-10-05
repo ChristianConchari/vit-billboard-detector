@@ -35,7 +35,9 @@ def freeze_backbone(model: PreTrainedModel) -> None:
         parameter.requires_grad = False
 
 
-def init_classification_bias(model: PreTrainedModel, prior_probability: float = 0.01) -> None:
+def init_classification_bias(
+    model: PreTrainedModel, prior_probability: float = 0.01
+) -> None:
     """Reset the freshly initialized class heads to RT-DETR's focal-loss prior.
 
     With a zero bias all 300 queries start at probability 0.5, which makes the

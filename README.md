@@ -176,6 +176,6 @@ reports/        results, figures and the exported experiment record
 
 - [Architecture](docs/architecture/README.md): system flow, RT-DETR internals, components.
 - [Design decisions](docs/decisions/): why the provided labels were discarded, why the split is by video, why the test set was labeled from scratch.
-- [Usage](docs/usage.md): the pipeline, every script and its options, MLflow tracking, the demo.
-- [Labeling workflow](docs/labeling.md): Label Studio setup and the review process.
+- [Usage](docs/usage.md): the pipeline, analysis scripts, MLflow tracking, the demo.
+- [Labeling workflow](docs/labeling.md): pre-labeling and review in Label Studio.
 - [Development](docs/development.md): setup, code style, tests and CI.

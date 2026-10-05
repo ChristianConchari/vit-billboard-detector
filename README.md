@@ -230,6 +230,21 @@ Each `run_pipeline.py` execution is **one MLflow run** with:
 
 `scripts/train_rtdetr.py` creates a training-only run with the same naming. A pipeline run with `--checkpoint` is named `<run>-evaluation`.
 
+### Exporting the experiment record
+
+`mlflow.db` stays local, so the record is exported to versionable files:
+
+```bash
+python scripts/export_experiments.py
+```
+
+This writes `reports/experiments/` with:
+- `runs.csv`: one row per finished run, with config, test metrics, calibrated threshold, latency, `git.commit` and data fingerprints;
+- `summary.md`: the learning curve and the backbone ablation, with mean and range over seeds;
+- `training_curves.png`: validation mAP per epoch for every run at the largest training-set size.
+
+Only finished runs evaluated on the current test split (matched by content fingerprint) are included, so runs scored on an earlier, biased test split never mix in.
+
 ### Learning curve
 
 To show how much labeling RT-DETR needs to match the zero-shot baseline, run the pipeline after each labeling batch with the same note, then plot:

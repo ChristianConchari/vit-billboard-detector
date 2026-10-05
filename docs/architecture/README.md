@@ -5,46 +5,29 @@
 An open-set model proposes boxes, a human corrects them, and a real-time detector is fine-tuned on the result.
 
 ```mermaid
-flowchart LR
-    raw["Raw video frames<br/>(632 images, 26 videos)"]
-
-    subgraph labeling["1 · Labeling"]
-        gdino["Grounding DINO<br/>zero-shot proposals"]
-        review["Label Studio<br/>human review"]
-        scratch["Test videos<br/>drawn from scratch"]
+flowchart TB
+    subgraph s1["1 · Labeling"]
+        direction LR
+        raw["Video frames<br/>632 images, 26 videos"] --> assign["Fixed assignment of<br/>videos to splits"]
+        assign -- "train and val" --> gdino["Grounding DINO:<br/>zero-shot proposals"] --> review["Label Studio:<br/>review proposals"]
+        assign -- "test" --> scratch["Label Studio:<br/>label from scratch"]
     end
-
-    subgraph data["2 · Dataset"]
-        import["Import COCO export"]
-        split["Split by video<br/>(frozen assignment)"]
+    subgraph pipe["Stages 2 to 4 · scripts/run_pipeline.py"]
+        direction LR
+        import["2 · Import the<br/>COCO export"] --> train["3 · Fine-tune<br/>RT-DETR, best epoch<br/>and threshold"] --> eval["4 · COCO metrics<br/>on test, latency<br/>and attention"]
     end
-
-    subgraph training["3 · Training"]
-        rtdetr["RT-DETR fine-tuning<br/>(COCO-pretrained)"]
-        calib["Best epoch + score<br/>threshold on val"]
+    subgraph out["Outputs"]
+        direction LR
+        cli["Inference:<br/>billboard-detect"]
+        mlflow[("MLflow run")]
+        cli ~~~ mlflow
     end
-
-    subgraph evaluation["4 · Evaluation"]
-        eval["COCO metrics on test<br/>RT-DETR vs. Grounding DINO"]
-        diag["Latency, localization,<br/>attention maps"]
-    end
-
-    tracking[("MLflow<br/>runs, tags, artifacts")]
-    report["reports/<br/>results, figures"]
-    cli["billboard-detect<br/>images and video"]
-
-    raw --> gdino --> review
-    raw --> scratch
-    review --> import
-    scratch --> import
-    import --> split --> rtdetr --> calib --> eval --> diag --> report
-    calib --> cli
-    rtdetr -.-> tracking
-    eval -.-> tracking
-    diag -.-> tracking
+    s1 --> pipe --> out
+    classDef manual stroke-dasharray: 6 4
+    class review,scratch manual
 ```
 
-`scripts/run_pipeline.py` runs stages 2 to 4.
+Videos are assigned to splits once, before labeling, so the test videos are labeled without pre-labels. Dashed boxes are manual steps. The localization analysis runs separately on the final model (`scripts/analyze_localization.py`).
 
 ## RT-DETR inside
 

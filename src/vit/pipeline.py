@@ -21,6 +21,7 @@ from vit.data.dataset_split import (
     SPLIT_NAMES,
     load_or_build_assignment,
     split_coco_by_video,
+    split_fingerprint,
     write_splits,
 )
 from vit.data.label_studio_export import import_label_studio_export
@@ -200,12 +201,7 @@ def _log_run_context(
         "stage": stage,
         "data.reviewed_annotations_sha256": file_digest(Path(data_cfg["reviewed_annotations"])),
         "data.split_assignment_sha256": file_digest(Path(data_cfg["split_assignment"])),
-        **{
-            f"data.{split}_sha256": file_digest(
-                Path(configs.rtdetr["data"][f"{split}_annotations"])
-            )
-            for split in SPLIT_NAMES
-        },
+        **{f"data.{name}_fingerprint": split_fingerprint(split) for name, split in splits.items()},
     }
     if export_path is not None:
         tags["data.export_sha256"] = file_digest(export_path)

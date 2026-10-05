@@ -153,7 +153,7 @@ Test images are annotated by hand, without Grounding DINO pre-labels, so the zer
 1. Push pre-labels with `--exclude-split test`, as in step 4, so test tasks don't get them.
 2. If test tasks already have predictions or annotations from an earlier push, filter them in the Data Manager by file name (each test video id), select them, and run **Actions → Delete predictions** and **Actions → Delete annotations**.
 3. Label every image of every test video, including images without billboards (submit them empty).
-4. From then on, don't edit the test videos: every pipeline run must see the same test split, and its SHA-256 is tracked in MLflow (`data.test_sha256`).
+4. From then on, don't edit the test videos: every pipeline run must see the same test split, and its content fingerprint (file names and boxes, independent of the ids Label Studio renumbers on every export) is tracked in MLflow as `data.test_fingerprint`.
 
 ## Training and evaluation
 
@@ -211,7 +211,7 @@ mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
 Each `run_pipeline.py` execution is **one MLflow run** with:
-- **tags** for reproducibility: `git.commit`, `git.dirty` (uncommitted changes when it ran), `stage`, and SHA-256 fingerprints of the reviewed annotations, the split assignment and the Label Studio export;
+- **tags** for reproducibility: `git.commit`, `git.dirty` (uncommitted changes when it ran), `stage`, SHA-256 hashes of the reviewed annotations, the split assignment and the Label Studio export, and a content fingerprint per split (`data.<split>_fingerprint`);
 - **params**: every setting of the three configs (`pipeline.*`, `rtdetr.*`, `grounding_dino.*`) and images/boxes per split (`data.<split>.*`);
 - **metrics**: `train/loss` and `val/*` per epoch, `val/best_mAP`, `calibration/*`, `test/<model>/*` and `latency/<model>/*`;
 - **artifacts**: the effective configs (`configs/`), `results.md`, `summary.json` and `calibration.json` (`reports/`). The checkpoint itself is logged only if `tracking.log_checkpoint` is enabled in `configs/pipeline.yaml`, because it weighs ~170 MB.

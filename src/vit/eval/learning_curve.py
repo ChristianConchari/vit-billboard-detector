@@ -26,7 +26,7 @@ GRID_COLOR = "#e4e3df"
 class RunResult:
     run_name: str
     train_images: int
-    test_split_sha256: str
+    test_split_fingerprint: str
     rtdetr_map: float
     zero_shot_map: float
 
@@ -54,12 +54,12 @@ def fetch_run_results(mlflow_config: dict[str, Any], note: str | None = None) ->
         RunResult(
             run_name=run.info.run_name,
             train_images=int(run.data.params["data.train.images"]),
-            test_split_sha256=run.data.tags["data.test_sha256"],
+            test_split_fingerprint=run.data.tags["data.test_fingerprint"],
             rtdetr_map=run.data.metrics["test/rtdetr/mAP"],
             zero_shot_map=run.data.metrics["test/grounding-dino/mAP"],
         )
         for run in runs
-        if "data.test_sha256" in run.data.tags and "test/rtdetr/mAP" in run.data.metrics
+        if "data.test_fingerprint" in run.data.tags and "test/rtdetr/mAP" in run.data.metrics
     ]
 
 
@@ -67,7 +67,7 @@ def build_curve(results: list[RunResult]) -> tuple[list[CurvePoint], float]:
     """Aggregate runs per training-set size; returns the points and the zero-shot mAP."""
     if not results:
         raise ValueError("No finished train+evaluate runs to plot")
-    test_splits = {r.test_split_sha256 for r in results}
+    test_splits = {r.test_split_fingerprint for r in results}
     if len(test_splits) > 1:
         raise ValueError(
             f"Runs were evaluated on {len(test_splits)} different test splits; "

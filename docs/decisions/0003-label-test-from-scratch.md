@@ -17,5 +17,5 @@ The test split also kept growing with every partial export, so runs weren't comp
 ## Consequences
 
 - RT-DETR and Grounding DINO are measured against ground truth that neither model influenced.
-- Runs share one test split (tracked by its SHA-256), so a learning curve over training-set size is valid.
+- Runs share one test split (tracked by a content fingerprint), so a learning curve over training-set size is valid.
 - Labeling the test videos takes longer than correcting proposals.

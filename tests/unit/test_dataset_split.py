@@ -5,6 +5,7 @@ from vit.data.dataset_split import (
     exclude_split,
     load_or_build_assignment,
     split_coco_by_video,
+    split_fingerprint,
     video_id_from_file_name,
     write_splits,
 )
@@ -143,3 +144,18 @@ def test_exclude_split_drops_images_and_boxes_of_that_split():
 
     assert [img["file_name"] for img in kept["images"]] == ["a_1.jpg", "c_1.jpg"]
     assert {a["image_id"] for a in kept["annotations"]} == {1, 3}
+
+
+def test_split_fingerprint_ignores_ids_and_order_but_not_boxes():
+    coco = _make_coco(["a_1.jpg", "b_1.jpg"])
+    renumbered = {
+        "images": [{**img, "id": img["id"] + 100} for img in reversed(coco["images"])],
+        "annotations": [
+            {**a, "id": a["id"] + 50, "image_id": a["image_id"] + 100} for a in coco["annotations"]
+        ],
+        "categories": coco["categories"],
+    }
+    moved_box = {**coco, "annotations": [{**coco["annotations"][0], "bbox": [1, 0, 10, 10]}]}
+
+    assert split_fingerprint(renumbered) == split_fingerprint(coco)
+    assert split_fingerprint(moved_box) != split_fingerprint(coco)

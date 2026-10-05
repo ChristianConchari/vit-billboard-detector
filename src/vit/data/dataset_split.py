@@ -6,9 +6,10 @@ to a split once, over the full image pool, and that assignment is reused for
 every (partial) reviewed export so splits stay stable while labeling grows.
 """
 
+import hashlib
 import json
 import random
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -131,3 +132,20 @@ def exclude_split(coco: dict[str, Any], assignment: dict[str, str], split: str) 
         if assignment.get(video_id_from_file_name(image["file_name"])) != split
     }
     return _subset(coco, kept_ids)
+
+
+def split_fingerprint(coco: dict[str, Any]) -> str:
+    """Hash of a split's content: image file names and their boxes.
+
+    Independent of image/annotation ids and ordering, which Label Studio
+    renumbers on every export even when the labels are unchanged.
+    """
+    category_names = {c["id"]: c["name"] for c in coco["categories"]}
+    file_names = {image["id"]: image["file_name"] for image in coco["images"]}
+    boxes: dict[str, list] = defaultdict(list)
+    for annotation in coco["annotations"]:
+        boxes[file_names[annotation["image_id"]]].append(
+            [category_names[annotation["category_id"]], [round(v, 2) for v in annotation["bbox"]]]
+        )
+    canonical = sorted((name, sorted(boxes[name])) for name in file_names.values())
+    return hashlib.sha256(json.dumps(canonical).encode()).hexdigest()[:16]
